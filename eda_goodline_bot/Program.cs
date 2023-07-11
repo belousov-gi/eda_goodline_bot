@@ -1,10 +1,17 @@
-﻿namespace eda_goodline_bot
+﻿using eda_goodline_bot.Iterfaces;
+
+namespace eda_goodline_bot
 {
     internal class Program
     {
-        public static void Main(string[] args)
+        public static void Main()
         {
-            Console.WriteLine("test");
+            ISocialNetworkAdapter socialNetworkAdapter = new TelegramConnection();
+            socialNetworkAdapter.ChooseDish();
+
+            //создается заказ, складывается в БД
+
+            //Формируется общий заказ и отправл в определенное время (через крон отдельынй скрипт, котоырй заберет данные из БД?)
         }
     }
 }
