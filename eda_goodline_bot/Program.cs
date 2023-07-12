@@ -9,9 +9,11 @@ namespace eda_goodline_bot
             ISocialNetworkAdapter socialNetworkAdapter = new TelegramConnection();
             socialNetworkAdapter.ChooseDish();
 
-            //создается заказ, складывается в БД
-
-            //Формируется общий заказ и отправл в определенное время (через крон отдельынй скрипт, котоырй заберет данные из БД?)
+            IStorage storageAdapter = new MySqlStorageConnector();
+            storageAdapter.SaveOrder();
+            
+            
+            //Отдельный скрипт формирует общий заказ и отправляет в определенное время (через крон отдельынй скрипт, котоырй заберет данные из БД?)
         }
     }
 }
