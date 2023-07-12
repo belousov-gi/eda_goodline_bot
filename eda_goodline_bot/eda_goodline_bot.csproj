@@ -14,4 +14,8 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="System.Net.Http.Json" Version="8.0.0-preview.6.23329.7" />
+    </ItemGroup>
+
 </Project>
