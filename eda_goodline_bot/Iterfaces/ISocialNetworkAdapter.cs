@@ -4,4 +4,5 @@ public interface ISocialNetworkAdapter
 {
      string ChooseDish();
      void SendGeneralOrder();
+     void TestRequest();
 }
