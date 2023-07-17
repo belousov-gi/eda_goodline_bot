@@ -11,7 +11,7 @@ namespace eda_goodline_bot;
 public class TelegramAdapter : ISocialNetworkAdapter
 {
     private HttpClient _httpClient;
-
+    
     private HttpClient telegramClient
     {
         get => _httpClient;
@@ -20,59 +20,83 @@ public class TelegramAdapter : ISocialNetworkAdapter
             _httpClient = value;
             _httpClient.Timeout = TimeSpan.FromSeconds(60);
         }
-    } 
+    }
 
     // TODO: УДАЛИТь и из конструктора тоже!!
     private readonly string token;
     
+    
+
+    public void Start()
+    {
+        OnMessages += TestActionAsync;
+
+        //как часто делаем long pull
+        int timeout = 60;
+        int updateId = 0;
+        
+        //TODO: вынести в какой-то пакет констант + таймаут для лонг пулинга
+        string serverAddress = $"https://api.telegram.org/bot{token}/getUpdates?offset={0}";
+        
+        //смотрим на сообщения, которые пришли до включения бота, чтобы определить с какого updateId начать
+        TelegramReceivedMessages? messages = CheckNewMessages(serverAddress);
+        
+        Console.WriteLine($"смотрим пустой резалт {messages.result.Length}");
+        if (messages.result.Length != 0)
+        {
+            updateId = messages.result[messages.result.Length - 1].update_id;  
+        }
+        
+
+        //TODO: offset хранить в файле где-то? + Прием сообщений куда-то в отдельный хендлер надо вынести + использвать allowed_updates (см доку) . 
+        //тут логика ожидания сообщений
+        while (true)
+        {
+            Console.WriteLine($"Ищем новые сообщения, update id {updateId}");
+            ++updateId;
+            serverAddress = $"https://api.telegram.org/bot{token}/getUpdates?offset={updateId}&timeout={timeout}";
+            messages = CheckNewMessages(serverAddress);
+            
+            //вызов эвента, что пришло сообщение
+            foreach (var messageInfo in messages.result)
+            {
+                var text = messageInfo.message.text;
+                var idChat = messageInfo.message.chat.id;
+                updateId = messageInfo.update_id;
+                // TestAction(idChat, text);
+                OnMessages?.Invoke(idChat, text);
+                Task.WaitAll();
+            }
+        }
+    }
+
+    private TelegramReceivedMessages CheckNewMessages(string serverAddress)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, serverAddress);
+        using var response = telegramClient.Send(request);
+        string? responseText = response.Content.ReadAsStringAsync().Result;
+        var messages = JsonSerializer.Deserialize<TelegramReceivedMessages>(responseText);
+        return messages;
+    }
 
     public string ChooseDish()
     {
-        bool swtch = true;
-        string responseText = null;
-        TelegramReceivedMessage receivedMessage;
-        int updateId = 806157099; // сделать механизм обнуления при запуске
-
-
-        //TODO: offset хранить в файле где-то? + Прием сообщений куда-то в отдельный хендлер надо вынести + использвать allowed_updates (см доку) . 
-        //тут логика запроса сообщений
-        while (swtch)
-        {
-            var serverAddress = $"https://api.telegram.org/bot{token}/getUpdates?offset={updateId}&timeout=60";
-            using var request = new HttpRequestMessage(HttpMethod.Get, serverAddress);
-            
-            using var response = telegramClient.SendAsync(request);
-            responseText = response.Result.Content.ReadAsStringAsync().Result;
-        
-            receivedMessage = JsonSerializer.Deserialize<TelegramReceivedMessage>(responseText);
-            Console.WriteLine(receivedMessage.result[0].message.text);
-            Console.WriteLine(receivedMessage.result[0].update_id);
-            updateId = receivedMessage.result[0].update_id;
-            ++updateId;
-
-
-
-            // var replyMarkup = new ReplyKeyboardMarkup(new[]
-            // {
-            //     new[]
-            //     {
-            //         new KeyboardButton("Кнопка 1"),
-            //         new KeyboardButton("Кнопка 2"),
-            //     },
-            //     new[]
-            //     {
-            //         new KeyboardButton("Кнопка 3"),
-            //         new KeyboardButton("Кнопка 4"),
-            //     }
-            // });
-            //
-            // telegramClient.SendAsync();
-
-        }
-
-
-        return responseText;
-
+        // var replyMarkup = new ReplyKeyboardMarkup(new[]
+        // {
+        //     new[]
+        //     {
+        //         new KeyboardButton("Кнопка 1"),
+        //         new KeyboardButton("Кнопка 2"),
+        //     },
+        //     new[]
+        //     {
+        //         new KeyboardButton("Кнопка 3"),
+        //         new KeyboardButton("Кнопка 4"),
+        //     }
+        // });
+        //
+        // telegramClient.SendAsync();
+        return "DIsh";
     }
 
     public void SendGeneralOrder()
@@ -87,12 +111,23 @@ public class TelegramAdapter : ISocialNetworkAdapter
         this.token = token;
     }
 
-    public void TestRequest()
+    // public async void TestActionAsync(int chatId, string text)
+    // {
+    //      string answer = $"Получил твое сообщение {text}";
+    //      string serverAddress = $"https://api.telegram.org/bot{token}/sendMessage?chat_id={chatId}&text={answer}";
+    //      using var request = new HttpRequestMessage(HttpMethod.Get, serverAddress);
+    //      using var response = await telegramClient.SendAsync(request);
+    // }
+    
+    public async void TestActionAsync(int chatId, string text)
     {
-        var content = _httpClient.GetStringAsync($"https://api.telegram.org/bot{token}/getMe");
-        Console.WriteLine(content.Result);
+        string answer = $"Получил твое сообщение {text}";
+        string serverAddress = $"https://api.telegram.org/bot{token}/sendMessage?chat_id={chatId}&text={answer}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, serverAddress);
+        using var response = await telegramClient.SendAsync(request);
+        //TODO: логирование ошибок навернуть
     }
-    
-    
-    
+ 
+
+    public event ISocialNetworkAdapter.OnMessage? OnMessages;
 }

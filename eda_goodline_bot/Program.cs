@@ -13,8 +13,14 @@ namespace eda_goodline_bot
 
 
             // socialNetworkAdapter.TestRequest();
+            // socialNetworkAdapter.ChooseDish();
 
-            socialNetworkAdapter.ChooseDish();
+            ISocialNetworkAdapter qq = new TelegramAdapter("6075918005:AAHBOlQc-y0PLOHhI4ZZV2LWb_FrEcYaSQ0");
+            
+            qq.Start();
+
+
+
 
             // IStorage storageAdapter = new MySqlStorageConnector();
             // storageAdapter.SaveOrder();
@@ -22,7 +28,7 @@ namespace eda_goodline_bot
 
 
             //Отдельный скрипт формирует общий заказ и отправляет в определенное время (через крон отдельынй скрипт, котоырй заберет данные из БД?)
-        
+
 
 
         }

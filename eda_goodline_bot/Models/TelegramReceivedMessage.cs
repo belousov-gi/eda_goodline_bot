@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace eda_goodline_bot.Models;
 
-public class TelegramReceivedMessage
+public class TelegramReceivedMessages
 {
     public bool ok { get; set; }
     public Result[] result { get; set; }
