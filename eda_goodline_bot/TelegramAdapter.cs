@@ -95,15 +95,11 @@ public class TelegramAdapter : ISocialNetworkAdapter
     public async void MessageHandler(int chatId, string text)
     {
         //TODO: логирование ошибок навернуть
-        
-        Console.WriteLine("ПРОБУЕМ");
         var answer = new Action();
         string jsonString = JsonSerializer.Serialize(answer);
-        string serverAddress = $"https://api.telegram.org/bot{token}/sendMessage?chat_id={chatId}&reply_markup={jsonString}";
+        string serverAddress = $"https://api.telegram.org/bot{token}/sendMessage?chat_id={chatId}&reply_markup={jsonString}&text={"Выбирай"}";
         using var request = new HttpRequestMessage(HttpMethod.Get, serverAddress);
         using var response = await telegramClient.SendAsync(request);
-        Console.WriteLine(response);
-        Console.WriteLine(request);
         //TODO: логирование ошибок навернуть
     }
  
