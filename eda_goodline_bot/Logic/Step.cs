@@ -11,4 +11,9 @@ public class Step
         StepId = stepId;
         ActionsList = actionsList;
     }
+
+    public Step()
+    {
+        Action act = new Action();
+    }
 }

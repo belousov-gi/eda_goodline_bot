@@ -24,12 +24,12 @@ public class TelegramAdapter : ISocialNetworkAdapter
 
     // TODO: УДАЛИТь и из конструктора тоже!!
     private readonly string token;
-    
-    
+
+
 
     public void Start()
     {
-        OnMessages += TestActionAsync;
+        OnMessages += MessageHandler;
 
         //как часто делаем long pull
         int timeout = 60;
@@ -41,7 +41,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
         //смотрим на сообщения, которые пришли до включения бота, чтобы определить с какого updateId начать
         TelegramReceivedMessages? messages = CheckNewMessages(serverAddress);
         
-        Console.WriteLine($"смотрим пустой резалт {messages.result.Length}");
+        Console.WriteLine($"смотрим кол-во сообщений {messages.result.Length}");
         if (messages.result.Length != 0)
         {
             updateId = messages.result[messages.result.Length - 1].update_id;  
@@ -63,7 +63,6 @@ public class TelegramAdapter : ISocialNetworkAdapter
                 var text = messageInfo.message.text;
                 var idChat = messageInfo.message.chat.id;
                 updateId = messageInfo.update_id;
-                // TestAction(idChat, text);
                 OnMessages?.Invoke(idChat, text);
                 Task.WaitAll();
             }
@@ -76,28 +75,10 @@ public class TelegramAdapter : ISocialNetworkAdapter
         using var response = telegramClient.Send(request);
         string? responseText = response.Content.ReadAsStringAsync().Result;
         var messages = JsonSerializer.Deserialize<TelegramReceivedMessages>(responseText);
+        
         return messages;
     }
 
-    public string ChooseDish()
-    {
-        // var replyMarkup = new ReplyKeyboardMarkup(new[]
-        // {
-        //     new[]
-        //     {
-        //         new KeyboardButton("Кнопка 1"),
-        //         new KeyboardButton("Кнопка 2"),
-        //     },
-        //     new[]
-        //     {
-        //         new KeyboardButton("Кнопка 3"),
-        //         new KeyboardButton("Кнопка 4"),
-        //     }
-        // });
-        //
-        // telegramClient.SendAsync();
-        return "DIsh";
-    }
 
     public void SendGeneralOrder()
     {
@@ -110,21 +91,19 @@ public class TelegramAdapter : ISocialNetworkAdapter
         
         this.token = token;
     }
-
-    // public async void TestActionAsync(int chatId, string text)
-    // {
-    //      string answer = $"Получил твое сообщение {text}";
-    //      string serverAddress = $"https://api.telegram.org/bot{token}/sendMessage?chat_id={chatId}&text={answer}";
-    //      using var request = new HttpRequestMessage(HttpMethod.Get, serverAddress);
-    //      using var response = await telegramClient.SendAsync(request);
-    // }
     
-    public async void TestActionAsync(int chatId, string text)
+    public async void MessageHandler(int chatId, string text)
     {
-        string answer = $"Получил твое сообщение {text}";
-        string serverAddress = $"https://api.telegram.org/bot{token}/sendMessage?chat_id={chatId}&text={answer}";
+        //TODO: логирование ошибок навернуть
+        
+        Console.WriteLine("ПРОБУЕМ");
+        var answer = new Action();
+        string jsonString = JsonSerializer.Serialize(answer);
+        string serverAddress = $"https://api.telegram.org/bot{token}/sendMessage?chat_id={chatId}&reply_markup={jsonString}";
         using var request = new HttpRequestMessage(HttpMethod.Get, serverAddress);
         using var response = await telegramClient.SendAsync(request);
+        Console.WriteLine(response);
+        Console.WriteLine(request);
         //TODO: логирование ошибок навернуть
     }
  

@@ -2,9 +2,8 @@ namespace eda_goodline_bot.Iterfaces;
 
 public interface ISocialNetworkAdapter
 {
-     string ChooseDish();
      void SendGeneralOrder();
-     void TestActionAsync(int chatId, string text);
+     void MessageHandler(int chatId, string text);
 
      void Start();
 

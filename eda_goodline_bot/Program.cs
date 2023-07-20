@@ -12,12 +12,7 @@ namespace eda_goodline_bot
             ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter("6075918005:AAHBOlQc-y0PLOHhI4ZZV2LWb_FrEcYaSQ0");
 
 
-            // socialNetworkAdapter.TestRequest();
-            // socialNetworkAdapter.ChooseDish();
-
-            ISocialNetworkAdapter qq = new TelegramAdapter("6075918005:AAHBOlQc-y0PLOHhI4ZZV2LWb_FrEcYaSQ0");
-            
-            qq.Start();
+            socialNetworkAdapter.Start();
 
 
 

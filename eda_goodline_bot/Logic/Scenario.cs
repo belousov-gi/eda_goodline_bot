@@ -4,9 +4,9 @@ namespace eda_goodline_bot;
 public class Scenario
 {
     public string ScenarioId { get; private init; }
-    public List<Step> StepsList { get; private init; }
+    public Step[] StepsList { get; private init; }
 
-    public Scenario(string scenarioId, List<Step> stepsList)
+    public Scenario(string scenarioId, Step[] stepsList)
     {
         ScenarioId = scenarioId;
         StepsList = stepsList;
