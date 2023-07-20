@@ -3,31 +3,22 @@ namespace eda_goodline_bot;
 public class Action
 {
     // public string ActionId { get; set; }
+    public List<List<KeyboardButton>> keyboard { get; init; }
 
     public Action()
     {
-        KeyboardButton button = new KeyboardButton("dddd");
-        
+        KeyboardButton button = new KeyboardButton("999");
+     
+        //TODO:LIST - надо задавать сразу его емкость.
         List<KeyboardButton> buttonsList = new List<KeyboardButton>();
         buttonsList.Add(button);
         
-        ReplyKeyboardMarkup replKeyboard = new ReplyKeyboardMarkup(buttonsList);
-      
-        
+        List<List<KeyboardButton>> keyboard = new List<List<KeyboardButton>>();
+        keyboard.Add(buttonsList);
+        this.keyboard = keyboard;
     }
     
-    public class ReplyKeyboardMarkup
-    {
-        public List<List<KeyboardButton>> keyboard { get; init; }
-
-        public ReplyKeyboardMarkup(List<KeyboardButton> btnList)
-        {
-            List<List<KeyboardButton>> keyboard = new List<List<KeyboardButton>>();
-            keyboard.Add(btnList);
-            this.keyboard = keyboard;
-        }
-    }
-
+  
     public class KeyboardButton
     {
         public string text { get; init; }
