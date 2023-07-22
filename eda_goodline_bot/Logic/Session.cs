@@ -4,13 +4,23 @@ public class Session
 {
     private bool _isExpire;
     private DateTime _dateTimeExpire;
+    public string _stepId;
     public int TimeForExpire{get; private init; }
 
     public string UserId { get; private init; }
-    public string ChatId { get; private init; }
-    
     public string ScenarioId { get; set; }
-    public string StepId { get; set; }
+
+    public string StepId
+    {
+        get => _stepId;
+        set
+        {
+            if (_stepId == null)
+            {
+                //TODO: доделать дефолтный шаг
+            }
+        }
+    }
 
     public DateTime DateTimeExpire
     {
@@ -37,10 +47,9 @@ public class Session
         }
     }
 
-    public Session(string userId, string chatId, string scenarioId, string stepId)
+    public Session(string userId, string scenarioId, string stepId)
     {
         UserId = userId;
-        ChatId = chatId;
         ScenarioId = scenarioId;
         StepId = stepId;
         TimeForExpire = 24;

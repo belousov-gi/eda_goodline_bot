@@ -1,5 +1,6 @@
 namespace eda_goodline_bot;
 
+//TODO: сделать синглтоном
 //сценарий, который состоит из шагов (экранов с действиями)
 public class Scenario
 {
