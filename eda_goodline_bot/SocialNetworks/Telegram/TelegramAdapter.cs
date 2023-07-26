@@ -25,28 +25,37 @@ public class TelegramAdapter : ISocialNetworkAdapter
     // TODO: УДАЛИТь и из конструктора тоже!!
     private readonly string token;
     public string ServerAddress { get; set; }
-    public TelegramAdapter(string token)
+    public Scenario LoadedScenario { get; init; }
+    
+    public delegate void OnMessage(TelegramReceivedMessages messages);
+    public event OnMessage OnMessages;
+    
+
+    public TelegramAdapter(string token, Scenario loadedScenario)
     {
         telegramClient = new HttpClient();
         this.token = token;
         ServerAddress = $"https://api.telegram.org/bot{token}";
+        LoadedScenario = loadedScenario;
     }
 
-    public delegate void OnMessage(TelegramReceivedMessages messages);
-    public event OnMessage OnMessages;
+    
+    
 
 
     public void Start()
     {
-        OnMessages += MessageHandler;
+        
+        
 
         //TODO: вынести в какой-то пакет констант + таймаут для лонг пулинга
 
         //смотрим на сообщения, которые пришли до включения бота, чтобы определить с какого updateId начать
-        // var updateId = FindLastUpdateId(ServerAddress);
+        var updateId = FindLastUpdateId(ServerAddress);
         
-        var updateId = 0;
-        // serverAddress = $"https://api.telegram.org/bot{token}/getUpdates?offset={updateId}&timeout={timeout}";
+        //для отладки
+        // var updateId = 0;
+
         ReceiveNewMessages(ServerAddress, updateId);
         
         //TODO: Прием сообщений куда-то в отдельный хендлер надо вынести + использвать allowed_updates (см доку) . 
@@ -108,48 +117,6 @@ public class TelegramAdapter : ISocialNetworkAdapter
         throw new NotImplementedException();
     }
 
-
-    
-    public async void MessageHandler(TelegramReceivedMessages messages)
-    {
-        // var answer = new Action();
-        // string jsonString = JsonSerializer.Serialize(answer);
-        // string serverAddress = $"https://api.telegram.org/bot{token}/sendMessage?chat_id={chatId}&text={$"{text}"}&reply_markup={jsonString}";
-        // using var request = new HttpRequestMessage(HttpMethod.Get, serverAddress);
-        // using var response = await telegramClient.SendAsync(request);
-        //TODO: логирование ошибок навернуть + 
-        await Task.Run(() =>
-        {
-            foreach (var messageInfo in messages.result)
-            {
-                var userId = messageInfo.message.from.id;
-                var chatId = messageInfo.message.chat.id;
-                var text = messageInfo.message.text;
-
-
-
-                //TODO:убрать в отдельную функцию отправки
-                // 
-                string jsonString = null;
-                var requestStr =
-                    ServerAddress + $"/sendMessage?chat_id={chatId}&text={$"{text}&reply_markup={jsonString}"}";
-                using var request = new HttpRequestMessage(HttpMethod.Get, requestStr);
-                
-                // Console.WriteLine($"Номер треда внутри хендлера ДО отправки запроса {Thread.GetCurrentProcessorId()} текст {text}");
-
-                using var response = telegramClient.Send(request);
-                
-                if ((int)response.StatusCode != 200)
-                {
-                    //TODO:залогировать ошибку отправки
-                }
-
-                // Console.WriteLine(
-                //     $"Номер треда внутри хендлера ПОСЛЕ отправки запроса {Thread.GetCurrentProcessorId()} текст {text}");
-            }
-        });
-
-    }
 
 
 }

@@ -5,11 +5,10 @@ public class Session
     private bool _isExpire;
     private DateTime _dateTimeExpire;
     public string _stepId;
-    public int TimeForExpire{get; private init; }
 
     public string UserId { get; private init; }
-    public string ScenarioId { get; set; }
 
+    public Scenario CurrentScenario { get; set; }
     public string StepId
     {
         get => _stepId;
@@ -22,15 +21,7 @@ public class Session
         }
     }
 
-    public DateTime DateTimeExpire
-    {
-        get => _dateTimeExpire;
-        set
-        {
-            _dateTimeExpire = value.AddHours(TimeForExpire);
-        }
-    }
-
+    public DateTime DateTimeExpire { get; set; }
     public bool IsExpire
     {
         get
@@ -47,13 +38,13 @@ public class Session
         }
     }
 
-    public Session(string userId, string scenarioId, string stepId)
+
+
+    public Session(string userId, Scenario currentScenario, string stepId, DateTime dateTimeExpire)
     {
         UserId = userId;
-        ScenarioId = scenarioId;
+        CurrentScenario = currentScenario;
         StepId = stepId;
-        TimeForExpire = 24;
-        DateTimeExpire = DateTime.Now;
     }
 
 }
