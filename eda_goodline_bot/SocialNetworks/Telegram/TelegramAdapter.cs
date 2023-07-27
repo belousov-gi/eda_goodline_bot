@@ -1,5 +1,7 @@
+using System.Net;
 using eda_goodline_bot.Iterfaces;
 using System.Net.Http;
+using System.Reflection;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -31,22 +33,40 @@ public class TelegramAdapter : ISocialNetworkAdapter
     public event OnMessage OnMessages;
     
 
-    public TelegramAdapter(string token, Scenario loadedScenario)
+    public TelegramAdapter(string token, string fileName)
     {
         telegramClient = new HttpClient();
         this.token = token;
         ServerAddress = $"https://api.telegram.org/bot{token}";
-        LoadedScenario = loadedScenario;
+        LoadedScenario = CreateScenarioFromJson(fileName);
+
     }
 
-    
-    
+
+    public Scenario CreateScenarioFromJson(string fileName)
+    {
+        Console.WriteLine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+        string jsonString = File.ReadAllText(fileName);
+        // LoadedScenario = 
+        try
+        {
+       
+            Scenario scenario = JsonSerializer.Deserialize<Scenario>(jsonString);
+            return scenario;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+           
+    }
 
 
     public void Start()
     {
         
-        
+        OnMessages += MessageHandler;
 
         //TODO: вынести в какой-то пакет констант + таймаут для лонг пулинга
 
@@ -117,6 +137,50 @@ public class TelegramAdapter : ISocialNetworkAdapter
         throw new NotImplementedException();
     }
 
+    public void SendMessage(int chatId, string answerText, string answerMenu)
+    {
+        string jsonAnswer = "{\"keyboard\":[" + answerMenu + "]}";
 
+        var requestStr =
+            ServerAddress + $"/sendMessage?chat_id={chatId}&text={$"{answerText}&reply_markup={jsonAnswer}"}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestStr);
+                
+        // Console.WriteLine($"Номер треда внутри хендлера ДО отправки запроса {Thread.GetCurrentProcessorId()} текст {text}");
+
+        using var response = telegramClient.Send(request);
+                
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            //TODO:залогировать ошибку отправки
+        }
+    }
+    public async void MessageHandler(TelegramReceivedMessages messages)
+    {
+
+        //TODO: логирование ошибок навернуть + 
+        await Task.Run(() =>
+        {
+            foreach (var messageInfo in messages.result)
+            {
+                var userId = messageInfo.message.from.id.ToString();
+                var chatId = messageInfo.message.chat.id;
+                var text = messageInfo.message.text;
+
+                var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId);
+
+                if (userSession == null)
+                {
+                    userSession = SessionManager.CreateSession(userId, LoadedScenario);
+                    userSession.ActivateStep(text, out var answerText, out var answerMenu);
+                    SendMessage(chatId, answerText, answerMenu);
+                }
+
+
+                // Console.WriteLine(
+                //     $"Номер треда внутри хендлера ПОСЛЕ отправки запроса {Thread.GetCurrentProcessorId()} текст {text}");
+            }
+        });
+
+    }
 
 }

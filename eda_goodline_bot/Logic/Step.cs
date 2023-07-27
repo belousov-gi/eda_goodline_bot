@@ -6,18 +6,19 @@ namespace eda_goodline_bot;
 public class Step
 {
     public string StepId { get; private init;}
+    public string NavigateTo { get; private init;}
+    public string StepDesc { get; private init;}
 
-    public List<List<KeyboardButton>> ActionsList { get; private init; }
+    public List<Action> ActionsList { get; private init; }
+    
+    // public List<List<KeyboardButton>> ActionsList { get; private init; }
 
-    public Step(string stepId, List<List<KeyboardButton>> actionsList)
+    public Step(string stepId, string stepDesc, List<Action> actionsList, string navigateTo)
     {
         StepId = stepId;
         ActionsList = actionsList;
-    }
-
-    public void UseStep(string inputAction)
-    {
-        
+        StepDesc = stepDesc;
+        NavigateTo = navigateTo;
     }
 
 }

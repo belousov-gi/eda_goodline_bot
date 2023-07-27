@@ -9,9 +9,10 @@ public class Action
 
     public Action(string actionId)
     {
-        
+        ActionId = actionId;
         KeyboardButton button = new KeyboardButton(actionId);
-     
+
+        this.button = new List<KeyboardButton>(1);
         //TODO:LIST - надо задавать сразу его емкость.
 
         this.button.Add(button);

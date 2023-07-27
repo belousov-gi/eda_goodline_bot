@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using Telegram.Bot.Types.ReplyMarkups;
 using eda_goodline_bot.Iterfaces;
+using System.Text.Json;
 
 namespace eda_goodline_bot
 {
@@ -9,16 +10,32 @@ namespace eda_goodline_bot
     {
         public static void Main()
         {
-            ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter("6075918005:AAHBOlQc-y0PLOHhI4ZZV2LWb_FrEcYaSQ0");
+            // string fileName = "scenario.json";
+            // ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter("6075918005:AAHBOlQc-y0PLOHhI4ZZV2LWb_FrEcYaSQ0", fileName);
+            
+            
+            
+            //TEST SERIALIZATION
 
+            var action = new Action("boom");
+            List<Action> actionList = new List<Action>(1);
+            actionList.Add(action);
+            var step = new Step("/start", "стартовое меню", actionList, "/start");
+            List<Step> stepsList = new List<Step>(1);
+            stepsList.Add(step);
+            Scenario? scenario = new Scenario("default", stepsList);
+            string jsonString = JsonSerializer.Serialize(scenario);
             
-            
+            var ss = JsonSerializer.Deserialize<Scenario>(jsonString);
+
+
+
             // socialNetworkAdapter.Start();
 
-            OnMessages += MessageHandler;
 
 
-            // IStorage storageAdapter = new MySqlStorageConnector();
+
+            // IStorage storageAdapter = new MySqlStorageConnector(); 
             // storageAdapter.SaveOrder();
 
 
@@ -29,51 +46,20 @@ namespace eda_goodline_bot
 
         }
         
-        
-        public async void MessageHandler(TelegramReceivedMessages messages)
+        public class TestClass
         {
+            public string Name { get; set; }
 
-            //TODO: логирование ошибок навернуть + 
-            await Task.Run(() =>
+            public TestClass(string name)
             {
-                foreach (var messageInfo in messages.result)
-                {
-                    var userId = messageInfo.message.from.id.ToString();
-                    var chatId = messageInfo.message.chat.id;
-                    var text = messageInfo.message.text;
-
-                    var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId);
-
-                    if (userSession == null)
-                    {
-                        userSession = SessionManager.CreateSession(userId, LoadedScenario);
-                        userSession.CurrentScenario.S
-                    }
-
-
-
-                    //TODO:убрать в отдельную функцию отправки
-                    // 
-                    string jsonString = null;
-                    var requestStr =
-                        ServerAddress + $"/sendMessage?chat_id={chatId}&text={$"{text}&reply_markup={jsonString}"}";
-                    using var request = new HttpRequestMessage(HttpMethod.Get, requestStr);
-                
-                    // Console.WriteLine($"Номер треда внутри хендлера ДО отправки запроса {Thread.GetCurrentProcessorId()} текст {text}");
-
-                    using var response = telegramClient.Send(request);
-                
-                    if ((int)response.StatusCode != 200)
-                    {
-                        //TODO:залогировать ошибку отправки
-                    }
-
-                    // Console.WriteLine(
-                    //     $"Номер треда внутри хендлера ПОСЛЕ отправки запроса {Thread.GetCurrentProcessorId()} текст {text}");
-                }
-            });
-
+                Name = name;
+            }
         }
+
+        
+        
+        
+        
         
         
         
