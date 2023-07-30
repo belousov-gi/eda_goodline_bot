@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace eda_goodline_bot;
 
 public class Action
@@ -5,7 +7,7 @@ public class Action
     public string ActionId { get; set; }
     
     //кнопка списком, потому что у нас в 1 строке всегда будет только 1 кнопка. 
-    public List<KeyboardButton> button { get; init; }
+    public List<KeyboardButton> button { get; set; }
 
     public Action(string actionId)
     {

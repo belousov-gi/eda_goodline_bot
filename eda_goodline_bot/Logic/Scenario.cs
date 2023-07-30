@@ -7,10 +7,10 @@ public class Scenario
     public string ScenarioId { get; set; }
     public List<Step> Steps { get; set; }
 
-    public Scenario(string scenarioId, List<Step> stepsList)
+    public Scenario(string scenarioId, List<Step> steps)
     {
         ScenarioId = scenarioId;
-        Steps = stepsList;
+        Steps = steps;
     }
     
     

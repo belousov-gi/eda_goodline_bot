@@ -41,7 +41,7 @@ public class Session
     public void ActivateStep(string inputText, out string answerText, out string answerMenu)
     {
         answerText = CurrentStep.StepDesc;
-        answerMenu = CurrentStep.ActionsList.ToString();
+        answerMenu = CurrentStep.Actions.ToString();
         
         //TODO:спорное решение что это должно быть здесь, возможно стоит вынести
         //в отправку (ведь сообщение может и не отправиться из-за сбоя)
