@@ -38,7 +38,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
         telegramClient = new HttpClient();
         this.token = token;
         ServerAddress = $"https://api.telegram.org/bot{token}";
-        // LoadedScenario = CreateScenarioFromJson(fileName);
+        LoadedScenario = CreateScenarioFromJson(fileName);
 
     }
 
@@ -50,7 +50,6 @@ public class TelegramAdapter : ISocialNetworkAdapter
         // LoadedScenario = 
         try
         {
-       
             Scenario scenario = JsonSerializer.Deserialize<Scenario>(jsonString);
             return scenario;
         }

@@ -9,11 +9,20 @@ static class SessionManager
 
     public static Session CreateSession(string userId, Scenario currentScenario)
     {
-        DateTime dateTimeExpire = DateTime.Now.AddHours(_timeForExpire);
-        var firstStep = currentScenario.Steps.Find(step => step.StepId == _firstStepId);
-        Session newSession = new Session(userId, currentScenario, firstStep, dateTimeExpire);
-        SessionsList.Add(newSession);
-        return newSession;
+        try
+        {
+            DateTime dateTimeExpire = DateTime.Now.AddHours(_timeForExpire);
+            var firstStep = currentScenario.Steps.Find(step => step.StepId == _firstStepId);
+            Session newSession = new Session(userId, currentScenario, firstStep, dateTimeExpire);
+            SessionsList.Add(newSession);
+            return newSession;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw new Exception("EXCEPTION");
+        }
+
     }
     
    

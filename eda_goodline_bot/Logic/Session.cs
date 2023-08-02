@@ -40,15 +40,18 @@ public class Session
     
     public void ActivateStep(string inputText, out string answerText, out string answerMenu)
     {
+        
+        //только при заходе на шаг
         answerText = CurrentStep.StepDesc;
         answerMenu = CurrentStep.Actions.ToString();
+          
         
         //TODO:спорное решение что это должно быть здесь, возможно стоит вынести
         //в отправку (ведь сообщение может и не отправиться из-за сбоя)
 
         CurrentStep = CurrentScenario.Steps.Find(step => step.StepId == CurrentStep.NavigateTo);
-
-        // answerText = CurrentStep.ActionsList.Find(action => action.ActionId == inputText).
+        // answerText = CurrentStep.Actions.Find(action => action.ActionId == inputText)
+        
 
 
     }

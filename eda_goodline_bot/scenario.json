@@ -5,7 +5,7 @@
       "StepId": "/start",
       "NavigateTo": "/start",
       "StepDesc": "стартовое меню",
-      "ActionsList": [
+      "Actions": [
         {
           "ActionId": "boom",
           "button": [
