@@ -65,7 +65,8 @@ public class TelegramAdapter : ISocialNetworkAdapter
     public void Start()
     {
         
-        OnMessages += MessageHandler;
+        OnMessages += HandleMessage;
+        // OnMessages += MessageHandler.HandleMessage;
 
         //TODO: вынести в какой-то пакет констант + таймаут для лонг пулинга
 
@@ -131,6 +132,20 @@ public class TelegramAdapter : ISocialNetworkAdapter
         return updateId;
     }
 
+    private void SendMessageToTgApi(string requestStr)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestStr);
+
+        // Console.WriteLine($"Номер треда внутри хендлера ДО отправки запроса {Thread.GetCurrentProcessorId()} текст {text}");
+
+        using var response = telegramClient.Send(request);
+                
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            //TODO:залогировать ошибку отправки
+        }
+    }
+
     public void SendGeneralOrder()
     {
         throw new NotImplementedException();
@@ -142,18 +157,19 @@ public class TelegramAdapter : ISocialNetworkAdapter
 
         var requestStr =
             ServerAddress + $"/sendMessage?chat_id={chatId}&text={$"{answerText}&reply_markup={jsonAnswer}"}";
-        using var request = new HttpRequestMessage(HttpMethod.Get, requestStr);
-                
-        // Console.WriteLine($"Номер треда внутри хендлера ДО отправки запроса {Thread.GetCurrentProcessorId()} текст {text}");
-
-        using var response = telegramClient.Send(request);
-                
-        if (response.StatusCode != HttpStatusCode.OK)
-        {
-            //TODO:залогировать ошибку отправки
-        }
+        SendMessageToTgApi(requestStr);
     }
-    public async void MessageHandler(TelegramReceivedMessages messages)
+    
+    public void SendMessage(int chatId, string answerText)
+    {
+        var requestStr = ServerAddress + $"/sendMessage?chat_id={chatId}&text={$"{answerText}"}";
+        SendMessageToTgApi(requestStr);
+    }
+    
+    
+    
+    
+    public async void HandleMessage(TelegramReceivedMessages messages)
     {
 
         //TODO: логирование ошибок навернуть + 
@@ -164,22 +180,72 @@ public class TelegramAdapter : ISocialNetworkAdapter
                 var userId = messageInfo.message.from.id.ToString();
                 var chatId = messageInfo.message.chat.id;
                 var text = messageInfo.message.text;
+                string? answerText = null;
+                string answerMenu = "";
 
                 var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId);
 
                 if (userSession == null)
                 {
                     userSession = SessionManager.CreateSession(userId, LoadedScenario);
-                    userSession.ActivateStep(text, out var answerText, out var answerMenu);
+                    
+                    //по дейфолту берем первый шаг
+                    answerText = userSession.CurrentScenario.Steps[0].StepDesc;
+                    answerMenu = userSession.CurrentScenario.Steps[0].Actions.ToString();
                     SendMessage(chatId, answerText, answerMenu);
                 }
+                else
+                {
+                    var currentStep = userSession.CurrentStep;
+                    var action = currentStep.Actions.Find(action => action.ActionId == text);
+                    string? answerAction = action.ActionAnswer;
 
+                    if (action.NavigateToStep != currentStep.StepId)
+                    {
+                        var nextStep = userSession.CurrentScenario.Steps.Find(step => step.StepId == action.NavigateToStep);
+                        if (nextStep != null)
+                        {
+                            answerText = nextStep.StepDesc;
+                            answerMenu = nextStep.Actions.ToString();
+                        }
+                        else
+                        {
+                            answerText = "Не существует шага навигации";
+                        }
+                        
+                    }
 
-                // Console.WriteLine(
-                //     $"Номер треда внутри хендлера ПОСЛЕ отправки запроса {Thread.GetCurrentProcessorId()} текст {text}");
+                    if (answerAction != null)
+                    {
+                        SendMessage(chatId, answerAction);
+                    }
+
+                    if (answerText != null)
+                    {
+                        SendMessage(chatId, answerText, answerMenu);
+                    }
+                    
+                    //TODO: дописать логику смены текущего шага
+                    
+                }
             }
         });
-
     }
+    
+    // public static void ActivateStep(Session userSession,string inputText, out string answerText, out string answerMenu)
+    // {
+    //     //только при заходе на шаг
+    //     answerText = CurrentStep.StepDesc;
+    //     answerMenu = CurrentStep.Actions.ToString();
+    //       
+    //     
+    //     //TODO:спорное решение что это должно быть здесь, возможно стоит вынести
+    //     //в отправку (ведь сообщение может и не отправиться из-за сбоя)
+    //
+    //     CurrentStep = CurrentScenario.Steps.Find();
+    //     // answerText = CurrentStep.Actions.Find(action => action.ActionId == inputText)
+    // }
+    
+    
 
 }
