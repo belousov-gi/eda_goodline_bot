@@ -4,10 +4,10 @@ namespace eda_goodline_bot;
 
 public class KeyboardButton
 {
-    public string Text { get; set; }
+    public string text { get; set; }
 
     public KeyboardButton(string text)
     {
-        Text = text;
+        this.text = text;
     }
 }

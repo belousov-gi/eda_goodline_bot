@@ -12,7 +12,8 @@ static class SessionManager
         try
         {
             DateTime dateTimeExpire = DateTime.Now.AddHours(_timeForExpire);
-            Session newSession = new Session(userId, currentScenario, null, dateTimeExpire);
+            Step currentStep = currentScenario.Steps.Find(step => step.StepId == _firstStepId) ?? throw new InvalidOperationException("/start hasn't been found");
+            Session newSession = new Session(userId, currentScenario, currentStep, dateTimeExpire);
             SessionsList.Add(newSession);
             return newSession;
         }

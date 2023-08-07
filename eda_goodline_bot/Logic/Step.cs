@@ -19,9 +19,4 @@ public class Step
         StepDesc = stepDesc;
     }
 
-    public void SendMenu()
-    {
-        
-    }
-
 }

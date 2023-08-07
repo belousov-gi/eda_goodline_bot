@@ -41,6 +41,15 @@ public class TelegramAdapter : ISocialNetworkAdapter
         LoadedScenario = CreateScenarioFromJson(fileName);
 
     }
+    
+    public TelegramAdapter(string token, Scenario sc)
+    {
+        telegramClient = new HttpClient();
+        this.token = token;
+        ServerAddress = $"https://api.telegram.org/bot{token}";
+        LoadedScenario = sc;
+
+    }
 
 
     public Scenario CreateScenarioFromJson(string fileName)
@@ -91,7 +100,6 @@ public class TelegramAdapter : ISocialNetworkAdapter
         while (true)
         {
             Console.WriteLine($"Ищем новые сообщения, update id {updateId} тред {Thread.GetCurrentProcessorId()}");
-            ++updateId;
 
             messages = CheckNewMessages(serverAddress, updateId);
             resultLenght = messages.result.Length;
@@ -102,6 +110,8 @@ public class TelegramAdapter : ISocialNetworkAdapter
                 OnMessages?.Invoke(messages);
                 updateId = messages.result[resultLenght - 1].update_id;  
             }
+            
+            ++updateId;
         }
     }
 
@@ -151,9 +161,20 @@ public class TelegramAdapter : ISocialNetworkAdapter
         throw new NotImplementedException();
     }
 
-    public void SendMessage(int chatId, string answerText, string answerMenu)
+    public void SendMessage(int chatId, string answerText, List<Action> actionsList)
     {
-        string jsonAnswer = "{\"keyboard\":[" + answerMenu + "]}";
+        string answerMenu = "";
+        string answerMenuJSON = "";
+
+        
+        foreach (var action in actionsList)
+        {
+            answerMenu = JsonSerializer.Serialize(action.button) + ",";
+            answerMenuJSON += answerMenu;
+        }
+        // string answerMenuJSON = JsonSerializer.Serialize(answerMenu);
+        answerMenuJSON = answerMenuJSON.Remove(answerMenuJSON.Length - 1);
+        string jsonAnswer = "{\"keyboard\":[" + answerMenuJSON+ "]}";
 
         var requestStr =
             ServerAddress + $"/sendMessage?chat_id={chatId}&text={$"{answerText}&reply_markup={jsonAnswer}"}";
@@ -165,10 +186,9 @@ public class TelegramAdapter : ISocialNetworkAdapter
         var requestStr = ServerAddress + $"/sendMessage?chat_id={chatId}&text={$"{answerText}"}";
         SendMessageToTgApi(requestStr);
     }
-    
-    
-    
-    
+
+
+
     public async void HandleMessage(TelegramReceivedMessages messages)
     {
 
@@ -180,8 +200,10 @@ public class TelegramAdapter : ISocialNetworkAdapter
                 var userId = messageInfo.message.from.id.ToString();
                 var chatId = messageInfo.message.chat.id;
                 var text = messageInfo.message.text;
+                // var messageType
+                
                 string? answerText = null;
-                string answerMenu = "";
+                List<Action>? answerMenu = null;
 
                 var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId);
 
@@ -189,43 +211,53 @@ public class TelegramAdapter : ISocialNetworkAdapter
                 {
                     userSession = SessionManager.CreateSession(userId, LoadedScenario);
                     
-                    //по дейфолту берем первый шаг
-                    answerText = userSession.CurrentScenario.Steps[0].StepDesc;
-                    answerMenu = userSession.CurrentScenario.Steps[0].Actions.ToString();
+                    //по дейфолту берем первый шаг из списка
+                    
+                    var currentStep =  userSession.CurrentStep;
+                    answerText = currentStep.StepDesc;
+                    answerMenu = currentStep.Actions;
                     SendMessage(chatId, answerText, answerMenu);
                 }
                 else
                 {
-                    var currentStep = userSession.CurrentStep;
-                    var action = currentStep.Actions.Find(action => action.ActionId == text);
-                    string? answerAction = action.ActionAnswer;
-
-                    if (action.NavigateToStep != currentStep.StepId)
+                    Step? nextStep;
+                    
+                    //для системных комманд бота
+                    if (text[0] == '/')
                     {
-                        var nextStep = userSession.CurrentScenario.Steps.Find(step => step.StepId == action.NavigateToStep);
-                        if (nextStep != null)
+                        nextStep = userSession.CurrentScenario.Steps.Find(step => step.StepId == text);
+                        answerText = nextStep.StepDesc;
+                        answerMenu = nextStep.Actions;
+                        userSession.CurrentStep = nextStep;
+                    }
+                    else
+                    {
+                        var currentStep = userSession.CurrentStep;
+                        var action = currentStep.Actions.Find(action => action.ActionId == text);
+                        string? answerAction = action.ActionAnswer;
+
+                        if (action.NavigateToStep != currentStep.StepId)
                         {
-                            answerText = nextStep.StepDesc;
-                            answerMenu = nextStep.Actions.ToString();
-                        }
-                        else
-                        {
-                            answerText = "Не существует шага навигации";
-                        }
+                            nextStep = userSession.CurrentScenario.Steps.Find(step => step.StepId == action.NavigateToStep);
+                            if (nextStep != null)
+                            {
+                                answerText = nextStep.StepDesc;
+                                answerMenu = nextStep.Actions;
+                                userSession.CurrentStep = nextStep;
+                            }
+                            else
+                            {
+                                answerText = "Не существует шага навигации";
+                            }
+                        } 
                         
+                        if (answerAction != null) { SendMessage(chatId, answerAction); }
                     }
-
-                    if (answerAction != null)
-                    {
-                        SendMessage(chatId, answerAction);
-                    }
-
+                    
                     if (answerText != null)
                     {
                         SendMessage(chatId, answerText, answerMenu);
                     }
-                    
-                    //TODO: дописать логику смены текущего шага
                     
                 }
             }
