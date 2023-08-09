@@ -108,10 +108,11 @@ public class TelegramAdapter : ISocialNetworkAdapter
             {
                 Console.WriteLine($"Номер треда при триггере события {Thread.GetCurrentProcessorId()}");
                 OnMessages?.Invoke(messages);
-                updateId = messages.result[resultLenght - 1].update_id;  
+                updateId = messages.result[resultLenght - 1].update_id; 
+                ++updateId;
             }
             
-            ++updateId;
+            
         }
     }
 
@@ -119,6 +120,10 @@ public class TelegramAdapter : ISocialNetworkAdapter
     private TelegramReceivedMessages CheckNewMessages(string serverAddress, int updateId)
     {
         const int timeout = 60;
+        return CheckNewMessages(serverAddress, updateId, timeout);
+    }
+    private TelegramReceivedMessages CheckNewMessages(string serverAddress, int updateId, int timeout)
+    {
         string requestStr = serverAddress + $"/getUpdates?timeout={timeout}&offset={updateId}";
         using var request = new HttpRequestMessage(HttpMethod.Get, requestStr);
         using var response = telegramClient.Send(request);
@@ -127,17 +132,19 @@ public class TelegramAdapter : ISocialNetworkAdapter
         return messages;
     }
     
+    
     private int FindLastUpdateId(string serverAddress)
     {
         int updateId = 0;
-        TelegramReceivedMessages? messages = CheckNewMessages(serverAddress, updateId);
+        TelegramReceivedMessages? messages = CheckNewMessages(serverAddress, updateId, 0);
         
         Console.WriteLine($"смотрим кол-во пропущенных сообщений {messages.result.Length}");
         int resultLenght = messages.result.Length;
         
         if (resultLenght != 0)
         {
-            updateId = messages.result[resultLenght - 1].update_id;  
+            updateId = messages.result[resultLenght - 1].update_id;
+            updateId++;
         }
         return updateId;
     }
@@ -203,10 +210,11 @@ public class TelegramAdapter : ISocialNetworkAdapter
                 // var messageType
                 
                 string? answerText = null;
-                List<Action>? answerMenu = null;
+                List<Action> answerMenu;
 
                 var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId);
 
+                
                 if (userSession == null)
                 {
                     userSession = SessionManager.CreateSession(userId, LoadedScenario);
@@ -217,6 +225,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
                     answerText = currentStep.StepDesc;
                     answerMenu = currentStep.Actions;
                     SendMessage(chatId, answerText, answerMenu);
+                    
                 }
                 else
                 {
@@ -226,39 +235,49 @@ public class TelegramAdapter : ISocialNetworkAdapter
                     if (text[0] == '/')
                     {
                         nextStep = userSession.CurrentScenario.Steps.Find(step => step.StepId == text);
-                        answerText = nextStep.StepDesc;
-                        answerMenu = nextStep.Actions;
-                        userSession.CurrentStep = nextStep;
+                        if (nextStep != null)
+                        {
+                            answerText = nextStep.StepDesc;
+                            answerMenu = nextStep.Actions;
+                            userSession.CurrentStep = nextStep;
+                            SendMessage(chatId, answerText, answerMenu);
+                        }
                     }
+                    
                     else
                     {
+                        //команда не системная
+                        
                         var currentStep = userSession.CurrentStep;
                         var action = currentStep.Actions.Find(action => action.ActionId == text);
-                        string? answerAction = action.ActionAnswer;
-
-                        if (action.NavigateToStep != currentStep.StepId)
-                        {
-                            nextStep = userSession.CurrentScenario.Steps.Find(step => step.StepId == action.NavigateToStep);
-                            if (nextStep != null)
-                            {
-                                answerText = nextStep.StepDesc;
-                                answerMenu = nextStep.Actions;
-                                userSession.CurrentStep = nextStep;
-                            }
-                            else
-                            {
-                                answerText = "Не существует шага навигации";
-                            }
-                        } 
                         
-                        if (answerAction != null) { SendMessage(chatId, answerAction); }
+                        //нашли такой экшен в текущем шаге, выполняем его
+                        if (action != null)
+                        {
+                            string? answerAction = action.ActionAnswer;
+                            
+                            //отправляем ответ на экшен, если он есть
+                            if (answerAction != null) { SendMessage(chatId, answerAction); }
+                            
+                            //смотрим меняется ли шаг после выполнение экшена
+                            if (action.NavigateToStep != null)
+                            {
+                                nextStep = userSession.CurrentScenario.Steps.Find(step => step.StepId == action.NavigateToStep);
+                                if (nextStep != null)
+                                {
+                                    answerText = nextStep.StepDesc;
+                                    answerMenu = nextStep.Actions;
+                                    userSession.CurrentStep = nextStep;
+                                    SendMessage(chatId, answerText, answerMenu);
+                                }
+                                else
+                                {
+                                    throw new Exception("Не существует такого шага навигации");
+                                }
+                            }
+                        }
                     }
-                    
-                    if (answerText != null)
-                    {
-                        SendMessage(chatId, answerText, answerMenu);
-                    }
-                    
+
                 }
             }
         });
