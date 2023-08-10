@@ -219,7 +219,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
                 {
                     userSession = SessionManager.CreateSession(userId, LoadedScenario);
                     
-                    //по дейфолту берем первый шаг из списка
+                    //по дейфолту берем шаг с названием /start
                     
                     var currentStep =  userSession.CurrentStep;
                     answerText = currentStep.StepDesc;
@@ -255,6 +255,9 @@ public class TelegramAdapter : ISocialNetworkAdapter
                         if (action != null)
                         {
                             string? answerAction = action.ActionAnswer;
+                            
+                            //действия над экшенами для данного сценария. 
+                            ActionsScenario.RunActionForStep(userId, currentStep, action);
                             
                             //отправляем ответ на экшен, если он есть
                             if (answerAction != null) { SendMessage(chatId, answerAction); }

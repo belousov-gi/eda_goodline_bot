@@ -52,12 +52,12 @@
           ]
         },
         {
-          "ActionId": "Завершить",
+          "ActionId": "В главное меню",
           "NavigateToStep": "/start",
           "ActionAnswer": null,
           "button": [
             {
-              "text": "Завершить"
+              "text": "В главное меню"
             }
           ]
         }
