@@ -6,6 +6,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using eda_goodline_bot.Models;
+using static eda_goodline_bot.Program;
 
 
 namespace eda_goodline_bot;
@@ -29,9 +30,8 @@ public class TelegramAdapter : ISocialNetworkAdapter
     public string ServerAddress { get; set; }
     public Scenario LoadedScenario { get; init; }
     
-    public delegate void OnMessage(TelegramReceivedMessages messages);
-    public event OnMessage OnMessages;
-    
+    public delegate void OnMessage(ISocialNetworkAdapter socialNetworkAdapter, TelegramReceivedMessages messages);
+    public event ISocialNetworkAdapter.OnMessage OnMessages;
 
     public TelegramAdapter(string token, string fileName)
     {
@@ -73,11 +73,6 @@ public class TelegramAdapter : ISocialNetworkAdapter
 
     public void Start()
     {
-        
-        OnMessages += HandleMessage;
-        // OnMessages += MessageHandler.HandleMessage;
-
-        //TODO: вынести в какой-то пакет констант + таймаут для лонг пулинга
 
         //смотрим на сообщения, которые пришли до включения бота, чтобы определить с какого updateId начать
         var updateId = FindLastUpdateId(ServerAddress);
@@ -107,12 +102,10 @@ public class TelegramAdapter : ISocialNetworkAdapter
             if (resultLenght != 0)
             {
                 Console.WriteLine($"Номер треда при триггере события {Thread.GetCurrentProcessorId()}");
-                OnMessages?.Invoke(messages);
+                OnMessages?.Invoke(this, messages);
                 updateId = messages.result[resultLenght - 1].update_id; 
                 ++updateId;
             }
-            
-            
         }
     }
 
@@ -196,95 +189,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
 
 
 
-    public async void HandleMessage(TelegramReceivedMessages messages)
-    {
-
-        //TODO: логирование ошибок навернуть + 
-        await Task.Run(() =>
-        {
-            foreach (var messageInfo in messages.result)
-            {
-                var userId = messageInfo.message.from.id.ToString();
-                var chatId = messageInfo.message.chat.id;
-                var text = messageInfo.message.text;
-                // var messageType
-                
-                string? answerText = null;
-                List<Action> answerMenu;
-
-                var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId);
-
-                
-                if (userSession == null)
-                {
-                    userSession = SessionManager.CreateSession(userId, LoadedScenario);
-                    
-                    //по дейфолту берем шаг с названием /start
-                    
-                    var currentStep =  userSession.CurrentStep;
-                    answerText = currentStep.StepDesc;
-                    answerMenu = currentStep.Actions;
-                    SendMessage(chatId, answerText, answerMenu);
-                    
-                }
-                else
-                {
-                    Step? nextStep;
-                    
-                    //для системных комманд бота
-                    if (text[0] == '/')
-                    {
-                        nextStep = userSession.CurrentScenario.Steps.Find(step => step.StepId == text);
-                        if (nextStep != null)
-                        {
-                            answerText = nextStep.StepDesc;
-                            answerMenu = nextStep.Actions;
-                            userSession.CurrentStep = nextStep;
-                            SendMessage(chatId, answerText, answerMenu);
-                        }
-                    }
-                    
-                    else
-                    {
-                        //команда не системная
-                        
-                        var currentStep = userSession.CurrentStep;
-                        var action = currentStep.Actions.Find(action => action.ActionId == text);
-                        
-                        //нашли такой экшен в текущем шаге, выполняем его
-                        if (action != null)
-                        {
-                            string? answerAction = action.ActionAnswer;
-                            
-                            //действия над экшенами для данного сценария. 
-                            ActionsScenario.RunActionForStep(userId, chatId, currentStep, action);
-                            
-                            //отправляем ответ на экшен, если он есть
-                            if (answerAction != null) { SendMessage(chatId, answerAction); }
-                            
-                            //смотрим меняется ли шаг после выполнение экшена
-                            if (action.NavigateToStep != null)
-                            {
-                                nextStep = userSession.CurrentScenario.Steps.Find(step => step.StepId == action.NavigateToStep);
-                                if (nextStep != null)
-                                {
-                                    answerText = nextStep.StepDesc;
-                                    answerMenu = nextStep.Actions;
-                                    userSession.CurrentStep = nextStep;
-                                    SendMessage(chatId, answerText, answerMenu);
-                                }
-                                else
-                                {
-                                    throw new Exception("Не существует такого шага навигации");
-                                }
-                            }
-                        }
-                    }
-
-                }
-            }
-        });
-    }
+   
     
     // public static void ActivateStep(Session userSession,string inputText, out string answerText, out string answerMenu)
     // {

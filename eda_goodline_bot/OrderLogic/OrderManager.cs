@@ -7,7 +7,17 @@ public static class OrderManager
     public static string ShowOrder(string customerId)
     {
         var order = Orders.Find(order => order.CustomerId == customerId);
-        string answer = string.Join("\n", order.Dishes);
+
+        var orderDishesCount = order.Dishes.Count;
+        string[] listOfDishes = new string [orderDishesCount];
+        Dish currentDish;
+        
+        for (int i = 0; i < orderDishesCount; i++)
+        {
+            currentDish = order.Dishes[i];
+            listOfDishes[i] = currentDish.NameDish + " / " + currentDish.PriceDish + " руб.";
+        }
+        string answer = string.Join("\n", listOfDishes);
         return answer;
     }
 }

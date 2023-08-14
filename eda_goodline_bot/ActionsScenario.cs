@@ -1,10 +1,11 @@
 using System.Text.RegularExpressions;
+using eda_goodline_bot.Iterfaces;
 
 namespace eda_goodline_bot;
 
 public static class ActionsScenario
 {
-    public static void RunActionForStep(string userId, int chatId, Step currentStep, Action action)
+    public static void RunActionForStep(ISocialNetworkAdapter socialNetworkAdapter, string userId, int chatId, Step currentStep, Action action)
     {
         var actionId = action.ActionId;
         
@@ -12,7 +13,7 @@ public static class ActionsScenario
         {
             case "availableDishes":
             {
-                if (action.ActionId != "В главное меню")
+                if (action.NavigateToStep != "/start")
                 {
                     var order = OrderManager.Orders.Find(order => order.CustomerId == userId);
                     if (order == null)
@@ -33,9 +34,12 @@ public static class ActionsScenario
                 break; 
             }
             
-            case "currentOrder":
-                OrderManager.ShowOrder(userId);
-                
+            case "/start":
+                if (action.NavigateToStep == "currentOrder")
+                {
+                    var answer = OrderManager.ShowOrder(userId);
+                    socialNetworkAdapter.SendMessage(chatId, answer);
+                }
                 break;
         }
     }
