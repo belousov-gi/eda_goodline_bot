@@ -4,7 +4,7 @@ namespace eda_goodline_bot;
 
 public static class ActionsScenario
 {
-    public static void RunActionForStep(string userId, Step currentStep, Action action)
+    public static void RunActionForStep(string userId, int chatId, Step currentStep, Action action)
     {
         var actionId = action.ActionId;
         
@@ -18,6 +18,7 @@ public static class ActionsScenario
                     if (order == null)
                     {
                         order = new Order(userId);
+                        OrderManager.Orders.Add(order);
                     }
 
                     string patternDishName = @".+(?=\s\/\s*\d*\D*\W\/)";
@@ -31,6 +32,11 @@ public static class ActionsScenario
                 }
                 break; 
             }
+            
+            case "currentOrder":
+                OrderManager.ShowOrder(userId);
+                
+                break;
         }
     }
 }

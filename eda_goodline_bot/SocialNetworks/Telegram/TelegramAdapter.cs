@@ -257,7 +257,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
                             string? answerAction = action.ActionAnswer;
                             
                             //действия над экшенами для данного сценария. 
-                            ActionsScenario.RunActionForStep(userId, currentStep, action);
+                            ActionsScenario.RunActionForStep(userId, chatId, currentStep, action);
                             
                             //отправляем ответ на экшен, если он есть
                             if (answerAction != null) { SendMessage(chatId, answerAction); }
