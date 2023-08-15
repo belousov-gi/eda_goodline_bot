@@ -115,7 +115,7 @@ namespace eda_goodline_bot
                                 //отправляем ответ на экшен, если он есть
                                 if (answerAction != null) { socialNetworkAdapter.SendMessage(chatId, answerAction); }
                                 
-                                //действия над экшенами для данного сценария. 
+                                //действия над экшенами для данного шага. 
                                 ActionsScenario.RunActionForStep(socialNetworkAdapter, userId, chatId, currentStep, action);
                                 
                                 //смотрим меняется ли шаг после выполнение экшена
@@ -127,6 +127,10 @@ namespace eda_goodline_bot
                                         answerText = nextStep.StepDesc;
                                         answerMenu = nextStep.Actions;
                                         userSession.CurrentStep = nextStep;
+                                        
+                                        //TODO: СДЕЛАТЬ НАСЛЕДОВАНИЕ ОТ БАЗОВОГО КЛАССА СЦЕНАРИЯ И В НЕМ ПЕРЕОПРЕДЕЛИТЬ МЕТОДЫ
+                                        // ПОВЕДЕНИЯ ЛОГИКИ. (ДО ЭТОГО УБРАТЬ В КЛАСС СЦЕНАРИЯ ФУНКЦИИ ПО ТИПУ ПОЛУЧИТЬ МЕНЮ ДЛЯ ШАГА И ТД)
+                                        ActionsScenario.RunActionForStep(socialNetworkAdapter, userId, chatId, nextStep, null);
                                         socialNetworkAdapter.SendMessage(chatId, answerText, answerMenu);
                                     }
                                     else

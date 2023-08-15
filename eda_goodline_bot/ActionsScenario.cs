@@ -5,15 +5,28 @@ namespace eda_goodline_bot;
 
 public static class ActionsScenario
 {
-    public static void RunActionForStep(ISocialNetworkAdapter socialNetworkAdapter, string userId, int chatId, Step currentStep, Action action)
+    public static void RunActionForStep(ISocialNetworkAdapter socialNetworkAdapter, string userId, int chatId, Step step, Action? action)
     {
-        var actionId = action.ActionId;
+        string? nextStep;
+        string? actionId;
         
-        switch (currentStep.StepId)
+        if (action != null)
+        {
+            actionId = action.ActionId;
+            nextStep = action.NavigateToStep;
+        }
+        else
+        {
+            actionId = null;
+            nextStep = null;
+        }
+        
+        
+        switch (step.StepId)
         {
             case "availableDishes":
             {
-                if (action.NavigateToStep != "/start")
+                if (nextStep != "/start" && actionId != null)
                 {
                     var order = OrderManager.Orders.Find(order => order.CustomerId == userId);
                     if (order == null)
@@ -35,12 +48,45 @@ public static class ActionsScenario
             }
             
             case "/start":
-                if (action.NavigateToStep == "currentOrder")
+                if (nextStep == "currentOrder")
                 {
                     var answer = OrderManager.ShowOrder(userId);
                     socialNetworkAdapter.SendMessage(chatId, answer);
                 }
                 break;
+
+            case "currentOrder":
+            {
+                if (nextStep == "deletingPositions")
+                {
+                    var order = OrderManager.Orders.Find(order => order.CustomerId == userId);
+                    var dishesInOrder = order.Dishes;
+                    var answeredMenu = new List<Action>(dishesInOrder.Count + 1);
+                    
+                    if (order == null)
+                    {
+                        var answer = "В вашем заказе пусто";
+                        socialNetworkAdapter.SendMessage(chatId, answer);
+                    }
+                    else
+                    {
+                        Action dishMenuPoint;
+                        string dishNameForMenu;
+                        
+                        foreach (var dish in dishesInOrder)
+                        {
+                            dishNameForMenu = dish.NameDish + " / " + dish.PriceDish;
+                            dishMenuPoint = new Action(dishNameForMenu, null, null);
+                            answeredMenu.Add(dishMenuPoint);
+                        }
+                        
+                        
+                        
+                    }
+                }
+            }
+
+
         }
     }
 }
