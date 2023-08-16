@@ -33,14 +33,14 @@ public class TelegramAdapter : ISocialNetworkAdapter
     public delegate void OnMessage(ISocialNetworkAdapter socialNetworkAdapter, TelegramReceivedMessages messages);
     public event ISocialNetworkAdapter.OnMessage OnMessages;
 
-    public TelegramAdapter(string token, string fileName)
-    {
-        telegramClient = new HttpClient();
-        this.token = token;
-        ServerAddress = $"https://api.telegram.org/bot{token}";
-        LoadedScenario = CreateScenarioFromJson(fileName);
-
-    }
+    // public TelegramAdapter(string token, string fileName)
+    // {
+    //     telegramClient = new HttpClient();
+    //     this.token = token;
+    //     ServerAddress = $"https://api.telegram.org/bot{token}";
+    //     LoadedScenario = CreateScenarioFromJson(fileName);
+    //
+    // }
     
     public TelegramAdapter(string token, Scenario sc)
     {
@@ -52,23 +52,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
     }
 
 
-    public Scenario CreateScenarioFromJson(string fileName)
-    {
-        Console.WriteLine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-        string jsonString = File.ReadAllText(fileName);
-        // LoadedScenario = 
-        try
-        {
-            Scenario scenario = JsonSerializer.Deserialize<Scenario>(jsonString);
-            return scenario;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-           
-    }
+   
 
 
     public void Start()

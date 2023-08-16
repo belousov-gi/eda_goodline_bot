@@ -55,36 +55,36 @@ public static class ActionsScenario
                 }
                 break;
 
-            case "currentOrder":
-            {
-                if (nextStep == "deletingPositions")
-                {
-                    var order = OrderManager.Orders.Find(order => order.CustomerId == userId);
-                    var dishesInOrder = order.Dishes;
-                    var answeredMenu = new List<Action>(dishesInOrder.Count + 1);
-                    
-                    if (order == null)
-                    {
-                        var answer = "В вашем заказе пусто";
-                        socialNetworkAdapter.SendMessage(chatId, answer);
-                    }
-                    else
-                    {
-                        Action dishMenuPoint;
-                        string dishNameForMenu;
-                        
-                        foreach (var dish in dishesInOrder)
-                        {
-                            dishNameForMenu = dish.NameDish + " / " + dish.PriceDish;
-                            dishMenuPoint = new Action(dishNameForMenu, null, null);
-                            answeredMenu.Add(dishMenuPoint);
-                        }
-                        
-                        
-                        
-                    }
-                }
-            }
+            // case "currentOrder":
+            // {
+            //     if (nextStep == "deletingPositions")
+            //     {
+            //         var order = OrderManager.Orders.Find(order => order.CustomerId == userId);
+            //         var dishesInOrder = order.Dishes;
+            //         var answeredMenu = new List<Action>(dishesInOrder.Count + 1);
+            //         
+            //         if (order == null)
+            //         {
+            //             var answer = "В вашем заказе пусто";
+            //             socialNetworkAdapter.SendMessage(chatId, answer);
+            //         }
+            //         else
+            //         {
+            //             Action dishMenuPoint;
+            //             string dishNameForMenu;
+            //             
+            //             foreach (var dish in dishesInOrder)
+            //             {
+            //                 dishNameForMenu = dish.NameDish + " / " + dish.PriceDish;
+            //                 dishMenuPoint = new Action(dishNameForMenu, null, null);
+            //                 answeredMenu.Add(dishMenuPoint);
+            //             }
+            //             
+            //             
+            //             
+            //         }
+            //     }
+            // }
 
 
         }

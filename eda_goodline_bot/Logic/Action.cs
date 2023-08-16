@@ -22,6 +22,8 @@ public class Action
         ActionAnswer = actionAnswer;
     }
     
+    public delegate void RunActionLogic(Session session);
+    
     // public Action(string actionId, string? actionAnswer)
     // {
     //     ActionId = actionId;

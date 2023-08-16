@@ -18,5 +18,7 @@ public class Step
         Actions = actions;
         StepDesc = stepDesc;
     }
+    
+    public delegate void RunStepLogic(Session session);
 
 }

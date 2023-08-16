@@ -1,8 +1,10 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using Telegram.Bot.Types.ReplyMarkups;
 using eda_goodline_bot.Iterfaces;
 using System.Text.Json;
 using eda_goodline_bot.Models;
+using eda_goodline_bot.Scenarios;
 
 namespace eda_goodline_bot
 {
@@ -13,7 +15,10 @@ namespace eda_goodline_bot
         public static void Main()
         {
             string fileName = "scenario.json";
-            ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter("6075918005:AAHBOlQc-y0PLOHhI4ZZV2LWb_FrEcYaSQ0", fileName);
+            var scenario = CreateScenarioFromJson<OrderFood>(fileName);
+            
+            
+            ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter("6075918005:AAHBOlQc-y0PLOHhI4ZZV2LWb_FrEcYaSQ0", scenario);
 
             socialNetworkAdapter.OnMessages += HandleMessage;
 
@@ -68,12 +73,12 @@ namespace eda_goodline_bot
                     string? answerText = null;
                     List<Action> answerMenu;
 
-                    var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId);
+                    var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId && session.SocialNetworkAdapter == socialNetworkAdapter);
 
                     
                     if (userSession == null)
                     {
-                        userSession = SessionManager.CreateSession(userId, socialNetworkAdapter.LoadedScenario);
+                        userSession = SessionManager.CreateSession(socialNetworkAdapter, userId, chatId, socialNetworkAdapter.LoadedScenario);
                         
                         //по дейфолту берем шаг с названием /start
                         
@@ -116,7 +121,7 @@ namespace eda_goodline_bot
                                 if (answerAction != null) { socialNetworkAdapter.SendMessage(chatId, answerAction); }
                                 
                                 //действия над экшенами для данного шага. 
-                                ActionsScenario.RunActionForStep(socialNetworkAdapter, userId, chatId, currentStep, action);
+                                userSession.CurrentScenario.RunActionLogic?.Invoke(userSession);
                                 
                                 //смотрим меняется ли шаг после выполнение экшена
                                 if (action.NavigateToStep != null)
@@ -127,11 +132,10 @@ namespace eda_goodline_bot
                                         answerText = nextStep.StepDesc;
                                         answerMenu = nextStep.Actions;
                                         userSession.CurrentStep = nextStep;
+                                        userSession.CurrentScenario.RunStepLogic?.Invoke(userSession);
                                         
-                                        //TODO: СДЕЛАТЬ НАСЛЕДОВАНИЕ ОТ БАЗОВОГО КЛАССА СЦЕНАРИЯ И В НЕМ ПЕРЕОПРЕДЕЛИТЬ МЕТОДЫ
-                                        // ПОВЕДЕНИЯ ЛОГИКИ. (ДО ЭТОГО УБРАТЬ В КЛАСС СЦЕНАРИЯ ФУНКЦИИ ПО ТИПУ ПОЛУЧИТЬ МЕНЮ ДЛЯ ШАГА И ТД)
-                                        ActionsScenario.RunActionForStep(socialNetworkAdapter, userId, chatId, nextStep, null);
-                                        socialNetworkAdapter.SendMessage(chatId, answerText, answerMenu);
+                                        //TODO: доделать функции для остальных шагов и сделать для экшенов + убрать навигацию в функции
+
                                     }
                                     else
                                     {
@@ -147,7 +151,32 @@ namespace eda_goodline_bot
                 }
             });
         }
+         
+         //TODO: Заменить generic на фабрику?
+         public static T CreateScenarioFromJson<T>(string fileName) where T: Scenario
+         {
+             Console.WriteLine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+             string jsonString = File.ReadAllText(fileName);
+             // LoadedScenario = 
+             try
+             {
+                 T? scenario = JsonSerializer.Deserialize<T>(jsonString);
+
+                 if (scenario == null)
+                 {
+                     throw new Exception("Scenarion is null!");
+                 }
+                 return scenario;
+             }
+             catch (Exception e)
+             {
+                 Console.WriteLine(e);
+                 throw;
+             }
+           
+         }
         //Отдельный скрипт формирует общий заказ и отправляет в определенное время (через крон отдельынй скрипт, котоырй заберет данные из БД?)
     }
+    
 }
 
