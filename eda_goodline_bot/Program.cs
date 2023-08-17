@@ -87,6 +87,7 @@ namespace eda_goodline_bot
                         answerMenu = currentStep.Actions;
                         socialNetworkAdapter.SendMessage(chatId, answerText, answerMenu);
                         
+                        
                     }
                     else
                     {
@@ -102,6 +103,7 @@ namespace eda_goodline_bot
                                 answerMenu = nextStep.Actions;
                                 userSession.CurrentStep = nextStep;
                                 socialNetworkAdapter.SendMessage(chatId, answerText, answerMenu);
+                                userSession.CurrentStep.StepLogic?.Invoke(userSession);
                             }
                         }
                         
@@ -115,11 +117,6 @@ namespace eda_goodline_bot
                             //нашли такой экшен в текущем шаге, выполняем его
                             if (action != null)
                             {
-                                string? answerAction = action.ActionAnswer;
-
-                                //отправляем ответ на экшен, если он есть
-                                if (answerAction != null) { socialNetworkAdapter.SendMessage(chatId, answerAction); }
-                                
                                 //действия над экшенами для данного шага. 
                                 action.ActionLogic?.Invoke(userSession);
                                 
@@ -133,8 +130,8 @@ namespace eda_goodline_bot
                                         answerMenu = nextStep.Actions;
                                         userSession.CurrentStep = nextStep;
                                         // userSession.CurrentScenario.RunStepLogic?.Invoke(userSession);
-                                        userSession.CurrentStep.StepLogic?.Invoke(userSession);
                                         socialNetworkAdapter.SendMessage(chatId, answerText, answerMenu);
+                                        userSession.CurrentStep.StepLogic?.Invoke(userSession);
                                         //TODO: доделать функции для остальных шагов и сделать для экшенов + убрать навигацию в функции
 
                                     }
@@ -194,7 +191,6 @@ namespace eda_goodline_bot
                              session.SocialNetworkAdapter.SendMessage(session.ChatId, answer);
                          };
                          
-                         
                          break;
                          
                      }
@@ -205,11 +201,10 @@ namespace eda_goodline_bot
                          
                          //добавляем логику для экшенов, которые на этом шаге есть
                          string actionId;
+                         
                          foreach (var action in step.Actions)
                          {
-                             actionId = action.ActionId;
-                             
-                             if (actionId != "Завершитьww")
+                             if (action.ActionId != "Завершить")
                              {
                                  action.ActionLogic = session =>
                                  {
@@ -223,7 +218,9 @@ namespace eda_goodline_bot
                                              order = new Order(userId);
                                              OrderManager.Orders.Add(order);
                                          }
-
+                                        
+                                         //TODO: мб попробовать заюзать другие кнопки, которые передают значнеие еще. 
+                                         // в значениии передавать JSON и все
                                          string patternDishName = @".+(?=\s\/\s*\d*\D*\W\/)";
                                          string patternDishCost = @"\d+(?=.руб)";
                                      
@@ -232,13 +229,13 @@ namespace eda_goodline_bot
 
                                          var orderedDish = new Dish(dishName, dishCost);
                                          order.Dishes.Add(orderedDish);
+                                         session.SocialNetworkAdapter.SendMessage(session.ChatId, $"{dishName} добавлен в заказ");
                                      }
                                      catch (Exception e)
                                      {
                                          Console.WriteLine(e);
                                          session.SocialNetworkAdapter.SendMessage(session.ChatId, "Не удалось доабвить блюдо");
                                      }
-                                     
                                  };
                              }
                          }
