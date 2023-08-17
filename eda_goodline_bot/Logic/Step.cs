@@ -9,6 +9,7 @@ public class Step
     public string StepDesc { get;  init;}
 
     public List<Action> Actions { get;  init; }
+    public RunStepLogic StepLogic { get; set; }
     
     // public List<List<KeyboardButton>> ActionsList { get; private init; }
 

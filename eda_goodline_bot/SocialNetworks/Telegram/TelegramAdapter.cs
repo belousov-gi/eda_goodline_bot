@@ -21,7 +21,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
         set
         {
             _httpClient = value;
-            _httpClient.Timeout = TimeSpan.FromSeconds(60);
+            _httpClient.Timeout = TimeSpan.FromSeconds(600);
         }
     }
 

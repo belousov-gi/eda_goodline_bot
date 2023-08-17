@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using Telegram.Bot.Types.ReplyMarkups;
 using eda_goodline_bot.Iterfaces;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using eda_goodline_bot.Models;
 using eda_goodline_bot.Scenarios;
 
@@ -16,7 +17,7 @@ namespace eda_goodline_bot
         {
             string fileName = "scenario.json";
             var scenario = CreateScenarioFromJson<OrderFood>(fileName);
-            
+            AddLogicToScenario(scenario);
             
             ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter("6075918005:AAHBOlQc-y0PLOHhI4ZZV2LWb_FrEcYaSQ0", scenario);
 
@@ -74,7 +75,6 @@ namespace eda_goodline_bot
                     List<Action> answerMenu;
 
                     var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId && session.SocialNetworkAdapter == socialNetworkAdapter);
-
                     
                     if (userSession == null)
                     {
@@ -121,7 +121,7 @@ namespace eda_goodline_bot
                                 if (answerAction != null) { socialNetworkAdapter.SendMessage(chatId, answerAction); }
                                 
                                 //действия над экшенами для данного шага. 
-                                userSession.CurrentScenario.RunActionLogic?.Invoke(userSession);
+                                action.ActionLogic?.Invoke(userSession);
                                 
                                 //смотрим меняется ли шаг после выполнение экшена
                                 if (action.NavigateToStep != null)
@@ -132,8 +132,9 @@ namespace eda_goodline_bot
                                         answerText = nextStep.StepDesc;
                                         answerMenu = nextStep.Actions;
                                         userSession.CurrentStep = nextStep;
-                                        userSession.CurrentScenario.RunStepLogic?.Invoke(userSession);
-                                        
+                                        // userSession.CurrentScenario.RunStepLogic?.Invoke(userSession);
+                                        userSession.CurrentStep.StepLogic?.Invoke(userSession);
+                                        socialNetworkAdapter.SendMessage(chatId, answerText, answerMenu);
                                         //TODO: доделать функции для остальных шагов и сделать для экшенов + убрать навигацию в функции
 
                                     }
@@ -174,6 +175,77 @@ namespace eda_goodline_bot
                  throw;
              }
            
+         }
+
+         public static void AddLogicToScenario(Scenario scenario)
+         {
+             foreach (var step in scenario.Steps)
+             {
+                 // var stepId = step.StepId;
+                 switch (step.StepId)
+                 {
+                     //находим нужный шаг
+                     case "currentOrder":
+                     {
+                         //добавляем логику для шага
+                         step.StepLogic = (session) =>
+                         {
+                             var answer = OrderManager.ShowOrder(session.UserId);
+                             session.SocialNetworkAdapter.SendMessage(session.ChatId, answer);
+                         };
+                         
+                         
+                         break;
+                         
+                     }
+
+                     case "availableDishes":
+                     {
+                         //логики для шага нет
+                         
+                         //добавляем логику для экшенов, которые на этом шаге есть
+                         string actionId;
+                         foreach (var action in step.Actions)
+                         {
+                             actionId = action.ActionId;
+                             
+                             if (actionId != "Завершитьww")
+                             {
+                                 action.ActionLogic = session =>
+                                 {
+                                     try
+                                     {
+                                         actionId = action.ActionId;
+                                         var userId = session.UserId;
+                                         var order = OrderManager.Orders.Find(order => order.CustomerId == userId);
+                                         if (order == null)
+                                         {
+                                             order = new Order(userId);
+                                             OrderManager.Orders.Add(order);
+                                         }
+
+                                         string patternDishName = @".+(?=\s\/\s*\d*\D*\W\/)";
+                                         string patternDishCost = @"\d+(?=.руб)";
+                                     
+                                         var dishName = Regex.Match(actionId, patternDishName).ToString();
+                                         var dishCost = int.Parse(Regex.Match(actionId, patternDishCost).ToString());
+
+                                         var orderedDish = new Dish(dishName, dishCost);
+                                         order.Dishes.Add(orderedDish);
+                                     }
+                                     catch (Exception e)
+                                     {
+                                         Console.WriteLine(e);
+                                         session.SocialNetworkAdapter.SendMessage(session.ChatId, "Не удалось доабвить блюдо");
+                                     }
+                                     
+                                 };
+                             }
+                         }
+                         break;
+                     }
+                 }
+             }
          }
         //Отдельный скрипт формирует общий заказ и отправляет в определенное время (через крон отдельынй скрипт, котоырй заберет данные из БД?)
     }

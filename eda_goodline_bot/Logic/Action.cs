@@ -10,6 +10,7 @@ public class Action
     
     //кнопка списком, потому что у нас в 1 строке всегда будет только 1 кнопка. 
     public List<KeyboardButton> button { get; set; }
+    public RunActionLogic ActionLogic { get; set; }
 
     public Action(string actionId, string? actionAnswer, string navigateToStep)
     {
