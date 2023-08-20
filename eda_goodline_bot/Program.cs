@@ -17,8 +17,7 @@ namespace eda_goodline_bot
         {
             string fileName = "scenario.json";
             var scenario = CreateScenarioFromJson<OrderFood>(fileName);
-            AddLogicToScenario(scenario);
-            
+
             ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter("6075918005:AAHBOlQc-y0PLOHhI4ZZV2LWb_FrEcYaSQ0", scenario);
 
             socialNetworkAdapter.OnMessages += HandleMessage;
@@ -112,6 +111,8 @@ namespace eda_goodline_bot
                             //команда не системная
                             
                             var currentStep = userSession.CurrentStep;
+                            
+                            //TODO:здесь крашит динамичческие экшены (блюда котоыре добавлены в заказ тут не отображаются. ПОЧИНИТЬ)
                             var action = currentStep.Actions.Find(action => action.ActionId == text);
                             
                             //нашли такой экшен в текущем шаге, выполняем его
@@ -162,7 +163,7 @@ namespace eda_goodline_bot
 
                  if (scenario == null)
                  {
-                     throw new Exception("Scenarion is null!");
+                     throw new Exception("Scenario is null!");
                  }
                  return scenario;
              }
@@ -174,76 +175,7 @@ namespace eda_goodline_bot
            
          }
 
-         public static void AddLogicToScenario(Scenario scenario)
-         {
-             foreach (var step in scenario.Steps)
-             {
-                 // var stepId = step.StepId;
-                 switch (step.StepId)
-                 {
-                     //находим нужный шаг
-                     case "currentOrder":
-                     {
-                         //добавляем логику для шага
-                         step.StepLogic = (session) =>
-                         {
-                             var answer = OrderManager.ShowOrder(session.UserId);
-                             session.SocialNetworkAdapter.SendMessage(session.ChatId, answer);
-                         };
-                         
-                         break;
-                         
-                     }
-
-                     case "availableDishes":
-                     {
-                         //логики для шага нет
-                         
-                         //добавляем логику для экшенов, которые на этом шаге есть
-                         string actionId;
-                         
-                         foreach (var action in step.Actions)
-                         {
-                             if (action.ActionId != "Завершить")
-                             {
-                                 action.ActionLogic = session =>
-                                 {
-                                     try
-                                     {
-                                         actionId = action.ActionId;
-                                         var userId = session.UserId;
-                                         var order = OrderManager.Orders.Find(order => order.CustomerId == userId);
-                                         if (order == null)
-                                         {
-                                             order = new Order(userId);
-                                             OrderManager.Orders.Add(order);
-                                         }
-                                        
-                                         //TODO: мб попробовать заюзать другие кнопки, которые передают значнеие еще. 
-                                         // в значениии передавать JSON и все
-                                         string patternDishName = @".+(?=\s\/\s*\d*\D*\W\/)";
-                                         string patternDishCost = @"\d+(?=.руб)";
-                                     
-                                         var dishName = Regex.Match(actionId, patternDishName).ToString();
-                                         var dishCost = int.Parse(Regex.Match(actionId, patternDishCost).ToString());
-
-                                         var orderedDish = new Dish(dishName, dishCost);
-                                         order.Dishes.Add(orderedDish);
-                                         session.SocialNetworkAdapter.SendMessage(session.ChatId, $"{dishName} добавлен в заказ");
-                                     }
-                                     catch (Exception e)
-                                     {
-                                         Console.WriteLine(e);
-                                         session.SocialNetworkAdapter.SendMessage(session.ChatId, "Не удалось доабвить блюдо");
-                                     }
-                                 };
-                             }
-                         }
-                         break;
-                     }
-                 }
-             }
-         }
+         
         //Отдельный скрипт формирует общий заказ и отправляет в определенное время (через крон отдельынй скрипт, котоырй заберет данные из БД?)
     }
     

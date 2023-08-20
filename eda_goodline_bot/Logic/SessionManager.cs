@@ -7,7 +7,7 @@ static class SessionManager
     private const int _timeForExpire = 24;
     private const string _firstStepId = "/start";
     
-    public static List<Session> SessionsList = new List<Session>();
+    public static List<Session> SessionsList = new();
 
     public static Session CreateSession(ISocialNetworkAdapter socialNetworkAdapter, string userId, int chatId, Scenario currentScenario)
     {

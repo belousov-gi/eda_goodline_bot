@@ -9,8 +9,10 @@ using eda_goodline_bot.Models;
 using static eda_goodline_bot.Program;
 
 
+
 namespace eda_goodline_bot;
 
+//TODO: сделать синглтоном
 public class TelegramAdapter : ISocialNetworkAdapter
 {
     private HttpClient _httpClient;
