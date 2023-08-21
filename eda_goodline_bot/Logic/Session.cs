@@ -12,7 +12,6 @@ public class Session
     public Scenario CurrentScenario { get; set; }
 
     public Step CurrentStep { get; set; }
-    public string CurrentStepId { get; set; }
 
     public DateTime DateTimeExpire { get; set; }
     public bool IsExpire

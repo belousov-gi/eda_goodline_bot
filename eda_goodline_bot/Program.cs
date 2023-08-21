@@ -102,10 +102,8 @@ namespace eda_goodline_bot
                                 answerMenu = nextStep.Actions;
                                 userSession.CurrentStep = nextStep;
                                 socialNetworkAdapter.SendMessage(chatId, answerText, answerMenu);
-                                userSession.CurrentStep.StepLogic?.Invoke(userSession);
                             }
                         }
-                        
                         else
                         {
                             //команда не системная
@@ -118,8 +116,9 @@ namespace eda_goodline_bot
                             //нашли такой экшен в текущем шаге, выполняем его
                             if (action != null)
                             {
-                                //действия над экшенами для данного шага. 
+                                //действия над экшеном для данного шага. 
                                 action.ActionLogic?.Invoke(userSession);
+                                userSession.CurrentStep.LastAction = action;
                                 
                                 //смотрим меняется ли шаг после выполнение экшена
                                 if (action.NavigateToStep != null)
@@ -130,9 +129,10 @@ namespace eda_goodline_bot
                                         answerText = nextStep.StepDesc;
                                         answerMenu = nextStep.Actions;
                                         userSession.CurrentStep = nextStep;
-                                        // userSession.CurrentScenario.RunStepLogic?.Invoke(userSession);
+                                        
+                                        //при смене шага очищаем историю последнего выполненного шага для него
+                                        userSession.CurrentStep.LastAction = null;
                                         socialNetworkAdapter.SendMessage(chatId, answerText, answerMenu);
-                                        userSession.CurrentStep.StepLogic?.Invoke(userSession);
                                         //TODO: доделать функции для остальных шагов и сделать для экшенов + убрать навигацию в функции
 
                                     }
@@ -141,10 +141,13 @@ namespace eda_goodline_bot
                                         throw new Exception("Не существует такого шага навигации");
                                     }
                                 }
-                                
-                                
                             }
+                            
+                            
                         }
+                        
+                        //выполняем логику шага
+                        userSession.CurrentStep.StepLogic?.Invoke(userSession);
 
                     }
                 }

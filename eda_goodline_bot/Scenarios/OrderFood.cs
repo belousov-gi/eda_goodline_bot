@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 
 namespace eda_goodline_bot.Scenarios;
@@ -86,39 +85,59 @@ public class OrderFood : Scenario
                          //Динамически формируем экшены из того, что клиент доабвил в заказ
                          step.StepLogic = session =>
                          {
-                             List<Action> actionsForStep = new List<Action>();
+                             List<Action> dynamicActionsForStep = new List<Action>();
                              var order = OrderManager.GetOrderById(session.UserId);
-                             string answeredText = "Не добавлено ни одного блюда";
-
-                             if (order != null)
+                             string answeredText = "Выберите блюда для удаления";
+                             
+                             if (order == null || order.Dishes.Count == 0)
+                             {
+                                 answeredText = "Не добавлено ни одного блюда";
+                             }
+                             else
                              {
                                  foreach (var dish in order.Dishes)
                                  {
                                      string actionId = dish.GeneralDishName;
                                      Action action = new Action(actionId);
-                                     actionsForStep.Add(action);
-                                     answeredText = "Выбери позиции, которые хочешь удалить из заказа";
+                                     dynamicActionsForStep.Add(action);
                                  }
                              }
-                             
-                             actionsForStep.AddRange(session.CurrentStep.Actions);
-                             session.SocialNetworkAdapter.SendMessage(session.ChatId, answeredText, actionsForStep);
-                         };
 
-                         foreach (var action in step.Actions)
-                         {
-                             action.ActionLogic = session =>
+                             var currentActions = session.CurrentStep.Actions;
+                             var currentActionsAmount = currentActions.Count;
+                             
+                             //Если уже есть добавленные блюда, то очищаем весь список за исключением дефолтовых кнопок
+                             if (currentActionsAmount > 2)
                              {
-                                 var actionId = action.ActionId;
-                                 if (actionId != "В главное меню" && actionId != "Мой заказ")
+                                 currentActions.RemoveRange(0, currentActionsAmount - 2);
+                             }
+                             
+                             //добавляем к динамическим шагам стандартные шаги из JSON
+                             dynamicActionsForStep.AddRange(currentActions);
+                             session.CurrentStep.Actions = dynamicActionsForStep;
+                             
+                             //Каждому экшену добавляем логику
+                             foreach (var action in dynamicActionsForStep)
+                             {
+                                 action.ActionLogic = _ =>
                                  {
-                                     var order = OrderManager.GetOrderById(session.UserId);
-                                     var generalDishName = action.ActionId;
-                                     var dish = OrderManager.GetDishFromOrder(order, generalDishName);
-                                     OrderManager.RemoveDishFromOrder(order, dish);
-                                 }
-                             };
-                         }
+                                     var actionId = action.ActionId;
+                                     if (actionId != "В главное меню" && actionId != "Мой заказ")
+                                     {
+                                         var generalDishName = action.ActionId;
+                                         var dish = OrderManager.GetDishFromOrder(order, generalDishName);
+                                         OrderManager.RemoveDishFromOrder(order, dish);
+                                         action.ActionAnswer = $"Удалено из заказа: {dish.ShortNameDish}";
+                                     }
+                                 };
+                             }
+
+                             answeredText = session.CurrentStep.LastAction == null
+                                 ? answeredText
+                                 : session.CurrentStep.LastAction.ActionAnswer; 
+                             session.SocialNetworkAdapter.SendMessage(session.ChatId, answeredText, dynamicActionsForStep);
+                             
+                         };
                          break;
                      }
                  }

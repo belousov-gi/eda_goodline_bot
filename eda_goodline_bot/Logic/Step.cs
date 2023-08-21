@@ -7,8 +7,9 @@ public class Step
 {
     public string StepId { get; init;}
     public string StepDesc { get;  init;}
-
-    public List<Action> Actions { get;  init; }
+    
+    public Action? LastAction { get;  set; }
+    public List<Action> Actions { get;  set; }
     public RunStepLogic? StepLogic { get; set; }
     
     // public List<List<KeyboardButton>> ActionsList { get; private init; }

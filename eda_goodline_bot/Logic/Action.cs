@@ -6,7 +6,7 @@ public class Action
 {
     public string ActionId { get; set; }
     public string? NavigateToStep { get;  init;}
-    public string? ActionAnswer { get;  init;}
+    public string? ActionAnswer { get;  set;}
     
     //кнопка списком, потому что у нас в 1 строке всегда будет только 1 кнопка. 
     public List<KeyboardButton> button { get; set; }
