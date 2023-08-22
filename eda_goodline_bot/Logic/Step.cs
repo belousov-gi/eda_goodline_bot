@@ -6,7 +6,7 @@ namespace eda_goodline_bot;
 public class Step
 {
     public string StepId { get; init;}
-    public string StepDesc { get;  init;}
+    public string? StepDesc { get;  init;}
     
     public Action? LastAction { get;  set; }
     public List<Action> Actions { get;  set; }

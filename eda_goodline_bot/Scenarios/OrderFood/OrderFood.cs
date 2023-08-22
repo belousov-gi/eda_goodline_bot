@@ -14,7 +14,6 @@ public class OrderFood : Scenario
          {
              foreach (var step in scenario.Steps)
              {
-                 // var stepId = step.StepId;
                  switch (step.StepId)
                  {
                      //находим нужный шаг
@@ -24,7 +23,8 @@ public class OrderFood : Scenario
                          step.StepLogic = (session) =>
                          {
                              var answer = OrderManager.ShowOrder(session.UserId);
-                             session.SocialNetworkAdapter.SendMessage(session.ChatId, answer);
+                             var answerMenu = session.CurrentStep.Actions;
+                             session.SocialNetworkAdapter.SendMessage(session.ChatId, answer, answerMenu);
                          };
                          
                          break;
@@ -40,40 +40,24 @@ public class OrderFood : Scenario
                          
                          foreach (var action in step.Actions)
                          {
-                             if (action.ActionId != "Завершить")
+                             if (action.ActionId != "Мой заказ")
                              {
                                  action.ActionLogic = session =>
                                  {
-                                     try
-                                     {
                                          actionId = action.ActionId;
                                          var userId = session.UserId;
-                                         var order = OrderManager.Orders.Find(order => order.CustomerId == userId);
-                                         if (order == null)
+                                         string resultOfAdding;
+                                         try
                                          {
-                                             order = new Order(userId);
-                                             OrderManager.Orders.Add(order);
+                                             var dish = OrderManager.CreateDishFromString(actionId);
+                                             resultOfAdding = OrderManager.AddDishToOrder(userId, dish);
                                          }
-                                        
-                                         //TODO: мб попробовать заюзать другие кнопки, которые передают значнеие еще. 
-                                         // в значениии передавать JSON и все
-                                         string patternDishName = @".+(?=\s\/\s*\d*\D*\W\/)";
-                                         string patternDishCost = @"\d+(?=.руб)";
-                                         string patternDishWeight = @"\d+(?=.гр)";
-                                     
-                                         var dishName = Regex.Match(actionId, patternDishName).ToString();
-                                         var dishCost = int.Parse(Regex.Match(actionId, patternDishCost).ToString());
-                                         var dishWeight = int.Parse(Regex.Match(actionId, patternDishWeight).ToString());
-
-                                         var orderedDish = new Dish(actionId, dishName, dishCost, dishWeight);
-                                         order.Dishes.Add(orderedDish);
-                                         session.SocialNetworkAdapter.SendMessage(session.ChatId, $"{dishName} добавлен в заказ");
-                                     }
-                                     catch (Exception e)
-                                     {
-                                         Console.WriteLine(e);
-                                         session.SocialNetworkAdapter.SendMessage(session.ChatId, "Не удалось доабвить блюдо");
-                                     }
+                                         catch (Exception e)
+                                         {
+                                             Console.WriteLine(e);
+                                             resultOfAdding = "Не удалось добавить блюдо";
+                                         }
+                                         session.SocialNetworkAdapter.SendMessage(session.ChatId, resultOfAdding);
                                  };
                              }
                          }
@@ -82,6 +66,7 @@ public class OrderFood : Scenario
 
                      case "deletingPositions":
                      {
+                         int DefaultActonsAmount = step.Actions.Count;
                          //Динамически формируем экшены из того, что клиент доабвил в заказ
                          step.StepLogic = session =>
                          {
@@ -107,9 +92,9 @@ public class OrderFood : Scenario
                              var currentActionsAmount = currentActions.Count;
                              
                              //Если уже есть добавленные блюда, то очищаем весь список за исключением дефолтовых кнопок
-                             if (currentActionsAmount > 2)
+                             if (currentActionsAmount > DefaultActonsAmount)
                              {
-                                 currentActions.RemoveRange(0, currentActionsAmount - 2);
+                                 currentActions.RemoveRange(0, currentActionsAmount - DefaultActonsAmount);
                              }
                              
                              //добавляем к динамическим шагам стандартные шаги из JSON
@@ -136,24 +121,11 @@ public class OrderFood : Scenario
                                  ? answeredText
                                  : session.CurrentStep.LastAction.ActionAnswer; 
                              session.SocialNetworkAdapter.SendMessage(session.ChatId, answeredText, dynamicActionsForStep);
-                             
                          };
                          break;
                      }
                  }
              }
          }
-    // private void LogicForSteps(Session session)
-    // {
-    //     switch (session.CurrentStep.StepId)
-    //     {
-    //         case "currentOrder":
-    //         {
-    //             var answer = OrderManager.ShowOrder(session.UserId);
-    //             session.SocialNetworkAdapter.SendMessage(session.ChatId, answer);
-    //             break;
-    //         }
-    //     }
-    // }
 }
 

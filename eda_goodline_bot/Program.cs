@@ -132,8 +132,13 @@ namespace eda_goodline_bot
                                         
                                         //при смене шага очищаем историю последнего выполненного шага для него
                                         userSession.CurrentStep.LastAction = null;
-                                        socialNetworkAdapter.SendMessage(chatId, answerText, answerMenu);
-                                        //TODO: доделать функции для остальных шагов и сделать для экшенов + убрать навигацию в функции
+                                        
+                                        if (answerText != null)
+                                        {
+                                            socialNetworkAdapter.SendMessage(chatId, answerText, answerMenu);
+                                        }
+
+                                        //TODO:  убрать навигацию в функции
 
                                     }
                                     else
