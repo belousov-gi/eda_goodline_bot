@@ -30,7 +30,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
     // TODO: УДАЛИТь и из конструктора тоже!!
     private readonly string token;
     public string ServerAddress { get; set; }
-    public Scenario LoadedScenario { get; init; }
+    public IScenario LoadedScenario { get; init; }
     
     public delegate void OnMessage(ISocialNetworkAdapter socialNetworkAdapter, TelegramReceivedMessages messages);
     public event ISocialNetworkAdapter.OnMessage OnMessages;
@@ -44,7 +44,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
     //
     // }
     
-    public TelegramAdapter(string token, Scenario sc)
+    public TelegramAdapter(string token, IScenario sc)
     {
         telegramClient = new HttpClient();
         this.token = token;
@@ -61,10 +61,10 @@ public class TelegramAdapter : ISocialNetworkAdapter
     {
 
         //смотрим на сообщения, которые пришли до включения бота, чтобы определить с какого updateId начать
-        var updateId = FindLastUpdateId(ServerAddress);
+        // var updateId = FindLastUpdateId(ServerAddress);
         
         //для отладки
-        // var updateId = 0;
+        var updateId = 0;
 
         ReceiveNewMessages(ServerAddress, updateId);
         
@@ -88,8 +88,9 @@ public class TelegramAdapter : ISocialNetworkAdapter
             if (resultLenght != 0)
             {
                 Console.WriteLine($"Номер треда при триггере события {Thread.GetCurrentProcessorId()}");
-                OnMessages?.Invoke(this, messages);
-                updateId = messages.result[resultLenght - 1].update_id; 
+                IReceivedMessage messagesGeneralView = messages;
+                OnMessages?.Invoke(this, messagesGeneralView);
+                // updateId = messages.result[resultLenght - 1].update_id; 
                 ++updateId;
             }
         }
@@ -107,7 +108,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
         using var request = new HttpRequestMessage(HttpMethod.Get, requestStr);
         using var response = telegramClient.Send(request);
         string responseText = response.Content.ReadAsStringAsync().Result;
-        var messages = JsonSerializer.Deserialize<TelegramReceivedMessages>(responseText);
+        TelegramReceivedMessages messages = JsonSerializer.Deserialize<TelegramReceivedMessages>(responseText);
         return messages;
     }
     
@@ -122,7 +123,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
         
         if (resultLenght != 0)
         {
-            updateId = messages.result[resultLenght - 1].update_id;
+            // updateId = messages.result[resultLenght - 1].update_id;
             updateId++;
         }
         return updateId;

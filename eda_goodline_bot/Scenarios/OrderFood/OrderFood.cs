@@ -1,18 +1,23 @@
 using System.Text.RegularExpressions;
+using eda_goodline_bot.Iterfaces;
 
 namespace eda_goodline_bot.Scenarios;
 
-public class OrderFood : Scenario
+public class OrderFood : IScenario
 {
+    public string ScenarioId { get; set; }
+    public List<Step> Steps { get; set; }
 
-    public OrderFood(string scenarioId, List<Step> steps) : base(scenarioId, steps)
+    public OrderFood(string scenarioId, List<Step> steps)
     {
-        AddLogicToScenario(this);
+        ScenarioId = scenarioId;
+        Steps = steps;
+        AddLogicToScenario();
     }
     
-      public static void AddLogicToScenario(Scenario scenario)
+      public void  AddLogicToScenario()
          {
-             foreach (var step in scenario.Steps)
+             foreach (var step in Steps)
              {
                  switch (step.StepId)
                  {
@@ -30,7 +35,7 @@ public class OrderFood : Scenario
                          break;
                          
                      }
-
+      
                      case "availableDishes":
                      {
                          //логики для шага нет
@@ -63,7 +68,7 @@ public class OrderFood : Scenario
                          }
                          break;
                      }
-
+      
                      case "deletingPositions":
                      {
                          int DefaultActonsAmount = step.Actions.Count;
@@ -87,7 +92,7 @@ public class OrderFood : Scenario
                                      dynamicActionsForStep.Add(action);
                                  }
                              }
-
+      
                              var currentActions = session.CurrentStep.Actions;
                              var currentActionsAmount = currentActions.Count;
                              
@@ -116,7 +121,7 @@ public class OrderFood : Scenario
                                      }
                                  };
                              }
-
+      
                              answeredText = session.CurrentStep.LastAction == null
                                  ? answeredText
                                  : session.CurrentStep.LastAction.ActionAnswer; 
@@ -127,5 +132,7 @@ public class OrderFood : Scenario
                  }
              }
          }
+
+      
 }
 

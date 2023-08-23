@@ -9,7 +9,7 @@ static class SessionManager
     
     public static List<Session> SessionsList = new();
 
-    public static Session CreateSession(ISocialNetworkAdapter socialNetworkAdapter, string userId, int chatId, Scenario currentScenario)
+    public static Session CreateSession(ISocialNetworkAdapter socialNetworkAdapter, string userId, int chatId, IScenario currentScenario)
     {
         try
         {
