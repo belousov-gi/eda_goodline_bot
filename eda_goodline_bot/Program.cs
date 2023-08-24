@@ -12,8 +12,8 @@ namespace eda_goodline_bot
 
         public static void Main()
         {
-            string fileName = "scenario.json";
-            var scenario = CreateScenarioFromJson<OrderFood>(fileName);
+            string filePath = "scenario.json";
+            var scenario = ScenarioBuilder.CreateScenarioFromJson<OrderFood>(filePath);
             
             ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter("6075918005:AAHBOlQc-y0PLOHhI4ZZV2LWb_FrEcYaSQ0", scenario);
 
@@ -117,22 +117,7 @@ namespace eda_goodline_bot
             });
         }
 
-         public static T CreateScenarioFromJson<T>(string fileName) where T: IScenario
-         {
-             Console.WriteLine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-             string jsonString = File.ReadAllText(fileName);
-            
-             try
-             {
-                 T scenario = JsonSerializer.Deserialize<T>(jsonString) ?? throw new Exception("Scenario is null!");
-                 return scenario;
-             }
-             catch (Exception e)
-             {
-                 Console.WriteLine(e);
-                 throw;
-             }
-         }
+         
 
          //Отдельный скрипт формирует общий заказ и отправляет в определенное время (через крон отдельынй скрипт, котоырй заберет данные из БД?)
     }
