@@ -29,13 +29,12 @@ namespace eda_goodline_bot
             //TODO: логирование ошибок навернуть + 
             await Task.Run(() =>
             {
-                var mm = messages.result;
-                foreach (var messageInfo in messages.result)
+                foreach (var messageInfo in messages.GeneralMessagesStructure)
                 {
                     var userId = messageInfo.message.from.id.ToString();
                     var chatId = messageInfo.message.chat.id;
                     var text = messageInfo.message.text;
-                    // var messageType
+
                     
                     string? answerText = null;
                     List<Action> answerMenu;
@@ -74,8 +73,6 @@ namespace eda_goodline_bot
                             //команда не системная
                             
                             var currentStep = userSession.CurrentStep;
-                            
-                            //TODO:здесь крашит динамичческие экшены (блюда котоыре добавлены в заказ тут не отображаются. ПОЧИНИТЬ)
                             var action = currentStep.Actions.Find(action => action.ActionId == text);
                             
                             //нашли такой экшен в текущем шаге, выполняем его

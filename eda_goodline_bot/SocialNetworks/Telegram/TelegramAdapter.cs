@@ -31,6 +31,8 @@ public class TelegramAdapter : ISocialNetworkAdapter
     private readonly string token;
     public string ServerAddress { get; set; }
     public IScenario LoadedScenario { get; init; }
+    private JsonSerializerOptions OptionsDisserialization{ get; } =  new() { IncludeFields = true}; 
+  
     
     public delegate void OnMessage(ISocialNetworkAdapter socialNetworkAdapter, TelegramReceivedMessages messages);
     public event ISocialNetworkAdapter.OnMessage OnMessages;
@@ -50,7 +52,6 @@ public class TelegramAdapter : ISocialNetworkAdapter
         this.token = token;
         ServerAddress = $"https://api.telegram.org/bot{token}";
         LoadedScenario = sc;
-
     }
 
 
@@ -61,10 +62,10 @@ public class TelegramAdapter : ISocialNetworkAdapter
     {
 
         //смотрим на сообщения, которые пришли до включения бота, чтобы определить с какого updateId начать
-        // var updateId = FindLastUpdateId(ServerAddress);
+        var updateId = FindLastUpdateId(ServerAddress);
         
         //для отладки
-        var updateId = 0;
+        // var updateId = 0;
 
         ReceiveNewMessages(ServerAddress, updateId);
         
@@ -90,7 +91,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
                 Console.WriteLine($"Номер треда при триггере события {Thread.GetCurrentProcessorId()}");
                 IReceivedMessage messagesGeneralView = messages;
                 OnMessages?.Invoke(this, messagesGeneralView);
-                // updateId = messages.result[resultLenght - 1].update_id; 
+                updateId = messages.result[resultLenght - 1].update_id; 
                 ++updateId;
             }
         }
@@ -108,7 +109,12 @@ public class TelegramAdapter : ISocialNetworkAdapter
         using var request = new HttpRequestMessage(HttpMethod.Get, requestStr);
         using var response = telegramClient.Send(request);
         string responseText = response.Content.ReadAsStringAsync().Result;
-        TelegramReceivedMessages messages = JsonSerializer.Deserialize<TelegramReceivedMessages>(responseText);
+        var options = new JsonSerializerOptions
+        {
+            IncludeFields = true,
+        };
+        TelegramReceivedMessages messages = JsonSerializer.Deserialize<TelegramReceivedMessages>(responseText, options);
+        messages.BuildGeneralMessagesStructure();
         return messages;
     }
     
@@ -123,7 +129,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
         
         if (resultLenght != 0)
         {
-            // updateId = messages.result[resultLenght - 1].update_id;
+            updateId = messages.result[resultLenght - 1].update_id;
             updateId++;
         }
         return updateId;
@@ -167,31 +173,9 @@ public class TelegramAdapter : ISocialNetworkAdapter
             ServerAddress + $"/sendMessage?chat_id={chatId}&text={$"{answerText}&reply_markup={jsonAnswer}"}";
         SendMessageToTgApi(requestStr);
     }
-    
     public void SendMessage(int chatId, string answerText)
     {
         var requestStr = ServerAddress + $"/sendMessage?chat_id={chatId}&text={$"{answerText}"}";
         SendMessageToTgApi(requestStr);
     }
-
-
-
-   
-    
-    // public static void ActivateStep(Session userSession,string inputText, out string answerText, out string answerMenu)
-    // {
-    //     //только при заходе на шаг
-    //     answerText = CurrentStep.StepDesc;
-    //     answerMenu = CurrentStep.Actions.ToString();
-    //       
-    //     
-    //     //TODO:спорное решение что это должно быть здесь, возможно стоит вынести
-    //     //в отправку (ведь сообщение может и не отправиться из-за сбоя)
-    //
-    //     CurrentStep = CurrentScenario.Steps.Find();
-    //     // answerText = CurrentStep.Actions.Find(action => action.ActionId == inputText)
-    // }
-    
-    
-
 }
