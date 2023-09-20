@@ -32,32 +32,32 @@
       "StepDesc": "Выбирай родной что хочешь",
       "Actions": [
         {
-          "ActionId": "Шашлык",
+          "ActionId": "Шашлык / 220 гр. / 125 руб.",
           "NavigateToStep": null,
           "ActionAnswer": "Шашлык добавлен в заказ",
           "button": [
             {
-              "text": "Шашлык"
+              "text": "Шашлык / 220 гр. / 125 руб."
             }
           ]
         },
         {
-          "ActionId": "Суп",
+          "ActionId": "Суп / 222 гр. / 333 руб.",
           "NavigateToStep": null,
           "ActionAnswer": "Суп добавлен в заказ",
           "button": [
             {
-              "text": "Суп"
+              "text": "Суп / 222 гр. / 333 руб."
             }
           ]
         },
         {
-          "ActionId": "В главное меню",
-          "NavigateToStep": "/start",
+          "ActionId": "Мой заказ",
+          "NavigateToStep": "currentOrder",
           "ActionAnswer": null,
           "button": [
             {
-              "text": "В главное меню"
+              "text": "Мой заказ"
             }
           ]
         }
@@ -65,15 +65,42 @@
     },
     {
       "StepId": "currentOrder",
-      "StepDesc": "Твой заказ",
+      "StepDesc": null,
       "Actions": [
         {
-          "ActionId": "В главное меню",
-          "NavigateToStep": "/start",
+          "ActionId": "Заказать",
+          "NavigateToStep": "availableDishes",
           "ActionAnswer": null,
           "button": [
             {
-              "text": "В главное меню"
+              "text": "Заказать"
+            }
+          ]
+        },
+        {
+          "ActionId": "Удалить позицию",
+          "NavigateToStep": "deletingPositions",
+          "ActionAnswer": null,
+          "button": [
+            {
+              "text": "Удалить позицию"
+            }
+          ]
+        }
+      ]
+
+    },
+    {
+      "StepId": "deletingPositions",
+      "StepDesc": null,
+      "Actions": [
+        {
+          "ActionId": "Мой заказ",
+          "NavigateToStep": "currentOrder",
+          "ActionAnswer": null,
+          "button": [
+            {
+              "text": "Мой заказ"
             }
           ]
         }
