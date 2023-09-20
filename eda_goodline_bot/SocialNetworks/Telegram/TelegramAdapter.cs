@@ -1,14 +1,7 @@
 using System.Net;
 using eda_goodline_bot.Iterfaces;
-using System.Net.Http;
-using System.Reflection;
-using Telegram.Bot.Types.ReplyMarkups;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using eda_goodline_bot.Models;
-using static eda_goodline_bot.Program;
-
-
 
 namespace eda_goodline_bot;
 
@@ -26,36 +19,18 @@ public class TelegramAdapter : ISocialNetworkAdapter
             _httpClient.Timeout = TimeSpan.FromSeconds(600);
         }
     }
-
-    // TODO: УДАЛИТь и из конструктора тоже!!
-    private readonly string token;
     public string ServerAddress { get; set; }
     public IScenario LoadedScenario { get; init; }
     private JsonSerializerOptions OptionsDisserialization{ get; } =  new() { IncludeFields = true}; 
-  
-    
-    public delegate void OnMessage(ISocialNetworkAdapter socialNetworkAdapter, TelegramReceivedMessages messages);
+   
     public event ISocialNetworkAdapter.OnMessage OnMessages;
-
-    // public TelegramAdapter(string token, string fileName)
-    // {
-    //     telegramClient = new HttpClient();
-    //     this.token = token;
-    //     ServerAddress = $"https://api.telegram.org/bot{token}";
-    //     LoadedScenario = CreateScenarioFromJson(fileName);
-    //
-    // }
-    
+  
     public TelegramAdapter(string token, IScenario sc)
     {
         telegramClient = new HttpClient();
-        this.token = token;
         ServerAddress = $"https://api.telegram.org/bot{token}";
         LoadedScenario = sc;
     }
-
-
-   
 
 
     public void Start()
@@ -69,9 +44,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
 
         ReceiveNewMessages(ServerAddress, updateId);
         
-        //TODO: Прием сообщений куда-то в отдельный хендлер надо вынести + использвать allowed_updates (см доку) . 
-
-        
+        //TODO: использвать allowed_updates (см доку) . 
     }
 
     private void ReceiveNewMessages(string serverAddress, int updateId)
@@ -109,11 +82,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
         using var request = new HttpRequestMessage(HttpMethod.Get, requestStr);
         using var response = telegramClient.Send(request);
         string responseText = response.Content.ReadAsStringAsync().Result;
-        var options = new JsonSerializerOptions
-        {
-            IncludeFields = true,
-        };
-        TelegramReceivedMessages messages = JsonSerializer.Deserialize<TelegramReceivedMessages>(responseText, options);
+        TelegramReceivedMessages messages = JsonSerializer.Deserialize<TelegramReceivedMessages>(responseText, OptionsDisserialization);
         messages.BuildGeneralMessagesStructure();
         return messages;
     }
@@ -149,14 +118,9 @@ public class TelegramAdapter : ISocialNetworkAdapter
         }
     }
 
-    public void SendGeneralOrder()
-    {
-        throw new NotImplementedException();
-    }
-
     public void SendMessage(int chatId, string answerText, List<Action> actionsList)
     {
-        string answerMenu = "";
+        string answerMenu;
         string answerMenuJSON = "";
 
         
