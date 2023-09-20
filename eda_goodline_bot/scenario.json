@@ -1,0 +1,84 @@
+{
+  "ScenarioId": "purchase",
+  "Steps": [
+    {
+      "StepId": "/start",
+      "StepDesc": "Главное меню",
+      "Actions": [
+        {
+          "ActionId": "Заказать",
+          "NavigateToStep": "availableDishes",
+          "ActionAnswer": null,
+          "button": [
+            {
+              "text": "Заказать"
+            }
+          ]
+        },
+        {
+          "ActionId": "Мой заказ",
+          "NavigateToStep": "currentOrder",
+          "ActionAnswer": null,
+          "button": [
+            {
+              "text": "Мой заказ"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "StepId": "availableDishes",
+      "StepDesc": "Выбирай родной что хочешь",
+      "Actions": [
+        {
+          "ActionId": "Шашлык",
+          "NavigateToStep": null,
+          "ActionAnswer": "Шашлык добавлен в заказ",
+          "button": [
+            {
+              "text": "Шашлык"
+            }
+          ]
+        },
+        {
+          "ActionId": "Суп",
+          "NavigateToStep": null,
+          "ActionAnswer": "Суп добавлен в заказ",
+          "button": [
+            {
+              "text": "Суп"
+            }
+          ]
+        },
+        {
+          "ActionId": "В главное меню",
+          "NavigateToStep": "/start",
+          "ActionAnswer": null,
+          "button": [
+            {
+              "text": "В главное меню"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "StepId": "currentOrder",
+      "StepDesc": "Твой заказ",
+      "Actions": [
+        {
+          "ActionId": "В главное меню",
+          "NavigateToStep": "/start",
+          "ActionAnswer": null,
+          "button": [
+            {
+              "text": "В главное меню"
+            }
+          ]
+        }
+      ]
+
+    }
+  ]
+}

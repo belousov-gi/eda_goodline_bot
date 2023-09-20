@@ -1,26 +1,19 @@
+using eda_goodline_bot.Iterfaces;
+
 namespace eda_goodline_bot;
 
 public class Session
 {
     private bool _isExpire;
     private DateTime _dateTimeExpire;
-    public int TimeForExpire{get; private init; }
-
     public string UserId { get; private init; }
-    public string ChatId { get; private init; }
-    
-    public string ScenarioId { get; set; }
-    public string StepId { get; set; }
+    public int ChatId { get; init; }
+    public ISocialNetworkAdapter SocialNetworkAdapter { get; init; }
+    public IScenario CurrentScenario { get; set; }
 
-    public DateTime DateTimeExpire
-    {
-        get => _dateTimeExpire;
-        set
-        {
-            _dateTimeExpire = value.AddHours(TimeForExpire);
-        }
-    }
+    public Step CurrentStep { get; set; }
 
+    public DateTime DateTimeExpire { get; set; }
     public bool IsExpire
     {
         get
@@ -37,14 +30,16 @@ public class Session
         }
     }
 
-    public Session(string userId, string chatId, string scenarioId, string stepId)
+
+
+    public Session(ISocialNetworkAdapter socialNetworkAdapter, string userId, int chatId, IScenario currentScenario, Step? currentStep, DateTime dateTimeExpire)
     {
+        SocialNetworkAdapter = socialNetworkAdapter;
         UserId = userId;
         ChatId = chatId;
-        ScenarioId = scenarioId;
-        StepId = stepId;
-        TimeForExpire = 24;
-        DateTimeExpire = DateTime.Now;
+        CurrentScenario = currentScenario;
+        CurrentStep = currentStep;
+        DateTimeExpire = dateTimeExpire;
     }
 
 }
