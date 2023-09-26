@@ -11,6 +11,7 @@
 *.userosscache
 *.sln.docstates
 ApplicationContext.cs
+/ApplicationContext.cs
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -399,3 +400,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+/.idea/.idea.eda_goodline_bot.dir/.idea/.gitignore

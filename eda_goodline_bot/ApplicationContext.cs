@@ -4,6 +4,7 @@ public class ApplicationContext : DbContext
 {
     public DbSet<User> Users { get; set; } = null!;
  
+    
     public ApplicationContext()
     {
         Database.EnsureCreated();
