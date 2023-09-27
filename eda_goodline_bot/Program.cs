@@ -1,15 +1,16 @@
-﻿using System.Reflection;
+﻿using System.Net.Mime;
+using System.Reflection;
 using System.Text.Json;
 using eda_goodline_bot.Iterfaces;
 using eda_goodline_bot.Models;
 using eda_goodline_bot.Scenarios;
 
+
 namespace eda_goodline_bot
 {
-    
     public class Program
     {
-
+        
         public static void Main()
         {
             string filePath = "scenario.json";
@@ -19,6 +20,7 @@ namespace eda_goodline_bot
 
             socialNetworkAdapter.OnMessages += HandleMessage;
             socialNetworkAdapter.Start();
+            
         }
         
         
