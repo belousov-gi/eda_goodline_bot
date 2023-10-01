@@ -5,6 +5,7 @@ namespace eda_goodline_bot;
 public class Action
 {
     public string ActionId { get; set; }
+    public string ExtraData { get; set; }
     public string? NavigateToStep { get;  init;}
     public string? ActionAnswer { get;  set;}
     
@@ -24,7 +25,6 @@ public class Action
         ActionAnswer = actionAnswer;
     }
   
-    //TODO: наличие этого конструктора крашит дисерриализацю. Подумать как исправить
     public Action(string actionId)
     {
         ActionId = actionId;

@@ -6,7 +6,7 @@ public class Session
 {
     private bool _isExpire;
     private DateTime _dateTimeExpire;
-    public string UserId { get; private init; }
+    public int UserId { get; private init; }
     public int ChatId { get; init; }
     public ISocialNetworkAdapter SocialNetworkAdapter { get; init; }
     public IScenario CurrentScenario { get; set; }
@@ -32,7 +32,7 @@ public class Session
 
 
 
-    public Session(ISocialNetworkAdapter socialNetworkAdapter, string userId, int chatId, IScenario currentScenario, Step? currentStep, DateTime dateTimeExpire)
+    public Session(ISocialNetworkAdapter socialNetworkAdapter, int userId, int chatId, IScenario currentScenario, Step? currentStep, DateTime dateTimeExpire)
     {
         SocialNetworkAdapter = socialNetworkAdapter;
         UserId = userId;

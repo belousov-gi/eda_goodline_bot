@@ -17,9 +17,10 @@ namespace eda_goodline_bot
             var scenario = ScenarioBuilder.CreateScenarioFromJson<OrderFood>(filePath);
             
             ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter(token, scenario);
-
+            
             socialNetworkAdapter.OnMessages += HandleMessage;
             socialNetworkAdapter.Start();
+
         }
         
         
@@ -32,7 +33,7 @@ namespace eda_goodline_bot
             {
                 foreach (var messageInfo in messages.GeneralMessagesStructure)
                 {
-                    var userId = messageInfo.message.from.id.ToString();
+                    var userId = messageInfo.message.from.id;
                     var chatId = messageInfo.message.chat.id;
                     var text = messageInfo.message.text;
 

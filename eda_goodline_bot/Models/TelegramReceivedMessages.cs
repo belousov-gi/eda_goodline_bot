@@ -5,7 +5,6 @@ namespace eda_goodline_bot.Models;
 
 public class TelegramReceivedMessages : IReceivedMessage
 {
-    // public IReceivedMessage.Result[] results { get; set; }
 
     public IReceivedMessage.Result[] GeneralMessagesStructure { get; set; }
 

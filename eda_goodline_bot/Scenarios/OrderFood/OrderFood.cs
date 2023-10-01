@@ -12,6 +12,7 @@ public class OrderFood : IScenario
     {
         ScenarioId = scenarioId;
         Steps = steps;
+        OrderManager.TruncateDishesCatalogAndOrders();
         AddLogicToScenario();
     }
     
@@ -45,17 +46,22 @@ public class OrderFood : IScenario
                          
                          foreach (var action in step.Actions)
                          {
+                             //добавляем лоигку
                              if (action.ActionId != "Мой заказ")
                              {
+                                 //добавляем блюда в БД
+                                 var dishId = OrderManager.AddDishToDb(action.ActionId);
+                                 action.ExtraData = dishId.ToString();
+                                 
                                  action.ActionLogic = session =>
                                  {
                                          actionId = action.ActionId;
+                                         var dishId = int.Parse(action.ExtraData);
                                          var userId = session.UserId;
                                          string resultOfAdding;
                                          try
                                          {
-                                             var dish = OrderManager.CreateDishFromString(actionId);
-                                             resultOfAdding = OrderManager.AddDishToOrder(userId, dish);
+                                             resultOfAdding = OrderManager.AddDishToOrder(userId, dishId);
                                          }
                                          catch (Exception e)
                                          {
@@ -79,15 +85,15 @@ public class OrderFood : IScenario
                              var order = OrderManager.GetOrderById(session.UserId);
                              string answeredText = "Выберите блюда для удаления";
                              
-                             if (order == null || order.Dishes.Count == 0)
+                             if (order == null || order.Count == 0)
                              {
                                  answeredText = "Не добавлено ни одного блюда";
                              }
                              else
                              {
-                                 foreach (var dish in order.Dishes)
+                                 foreach (var dish in order)
                                  {
-                                     string actionId = dish.GeneralDishName;
+                                     string actionId = dish.GeneralName;
                                      Action action = new Action(actionId);
                                      dynamicActionsForStep.Add(action);
                                  }
@@ -114,10 +120,13 @@ public class OrderFood : IScenario
                                      var actionId = action.ActionId;
                                      if (actionId != "В главное меню" && actionId != "Мой заказ")
                                      {
-                                         var generalDishName = action.ActionId;
-                                         var dish = OrderManager.GetDishFromOrder(order, generalDishName);
-                                         OrderManager.RemoveDishFromOrder(order, dish);
-                                         action.ActionAnswer = $"Удалено из заказа: {dish.ShortNameDish}";
+                                         // var DishId = int.Parse(action.ExtraData);
+                                         var DishId = OrderManager.GetDishIdFromCatalog(action.ActionId);
+                                         var orderedDish =  order.Find(x => x.DishId == DishId);
+                                         
+                                         OrderManager.RemoveDishFromOrder(orderedDish.CustomerId, DishId);
+                                        
+                                         action.ActionAnswer = $"Удалено из заказа: {orderedDish.GeneralName}";
                                      }
                                  };
                              }
