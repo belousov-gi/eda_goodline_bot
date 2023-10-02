@@ -30,8 +30,6 @@ public static class OrderManager
             return "Твой заказ:\n \n Не добавлено ниодного блюда в заказ";
     }
 
-
- 
     public static List<OrderedDishInfo> GetOrderById(int customerId)
     {
         using (MySqlStorage db = new MySqlStorage())
@@ -59,16 +57,6 @@ public static class OrderManager
                         DishId = p.DishId,
                         CustomerId = p.CustomerId
                     }).Select(p => p.GeneralName).ToList();;
-            
-            // var result = from order in db.ordered_dishes
-            //     join dish in db.dish_catalog on order.DishId equals dish.Id
-            //     select new
-            //     { 
-            //         Name = phone.Name, 
-            //         Company = company.Name, 
-            //         Price = phone.Price, 
-            //         Country = country.Name 
-            //     };
             return order;
         }
     }
@@ -90,18 +78,11 @@ public static class OrderManager
     {
         using (MySqlStorage db = new MySqlStorage())
         {
-            var date = DateTime.Today.Date.ToString("yyyy-MM-dd");
-            // db.ordered_dishes.Where(p => p.DishId == dishId && p.CustomerId == userId && p.DateOfOrder == DateTime.Today);
-            var rr = db.ordered_dishes.FromSql(
-                @$"DELETE
-                   FROM ordered_dishes 
-                   WHERE ordered_dishes.id = (SELECT tmp.id 
-                                              FROM 
-                                                    (SELECT id FROM ordered_dishes 
-                                                     WHERE (ordered_dishes.user_id = {userId})
-                                                     AND  (ordered_dishes.dish_id = {dishId})
-                                                     AND (ordered_dishes.order_day = {date}) 
-                                                     LIMIT 1) as tmp);");
+            var date = DateTime.Today.Date;
+            db.ordered_dishes
+                .Where(p => p.DishId == dishId && p.CustomerId == userId && p.DateOfOrder == date)
+                .Take(1)
+                .ExecuteDelete();
         }
     }
 
