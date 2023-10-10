@@ -13,10 +13,13 @@ public static class MessageHandler
             {
                 foreach (var messageInfo in messages.GeneralMessagesStructure)
                 {
+                    
                     var userId = messageInfo.message.from.id;
                     var chatId = messageInfo.message.chat.id;
                     var text = messageInfo.message.text;
-
+                    var nickName = messageInfo.message.from.username;
+                    
+                    socialNetworkAdapter.HandleUserInfoDbAsync(nickName, userId, chatId);
                     
                     string? answerText = null;
                     List<Action> answerMenu;

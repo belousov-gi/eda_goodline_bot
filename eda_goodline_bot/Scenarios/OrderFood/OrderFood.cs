@@ -22,6 +22,15 @@ public class OrderFood : IScenario
              {
                  switch (step.StepId)
                  {
+                     case "/start":
+                     {
+                         step.StepLogic = (session) =>
+                         {
+                         };
+                         
+                         break;
+                     }
+                     
                      //находим нужный шаг
                      case "currentOrder":
                      {

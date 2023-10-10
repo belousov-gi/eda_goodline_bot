@@ -7,6 +7,9 @@ public class MySqlStorage : DbContext
 {
     public DbSet<Dish> dish_catalog { get; set; } = null!;
     public DbSet<OrderedDish> ordered_dishes { get; set; } = null!;
+    
+    public DbSet<BotUser> users { get; set; } = null!;
+    
     public MySqlStorage()
     {
         Database.EnsureCreated();
