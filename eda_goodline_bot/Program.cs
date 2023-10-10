@@ -8,7 +8,6 @@ namespace eda_goodline_bot
     {
         public static void Main()
         {
-            ApiManager.StartApiManager();
             ApplicationConfig.LoadConfigFile(@"C:\Users\frega\RiderProjects\eda_goodline_bot\eda_goodline_bot\appsettings.json");
             
             string filePath = "scenario.json";
@@ -17,7 +16,8 @@ namespace eda_goodline_bot
             var scenario = ScenarioBuilder.CreateScenarioFromJson<OrderFood>(filePath);
             
             ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter(token, scenario);
-
+            ApiManager.StartApiManager(socialNetworkAdapter);
+            
             socialNetworkAdapter.OnMessages += MessageHandler.HandleMessage;
             socialNetworkAdapter.Start();
 

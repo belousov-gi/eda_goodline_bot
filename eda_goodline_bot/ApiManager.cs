@@ -3,13 +3,15 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using eda_goodline_bot.Iterfaces;
 using eda_goodline_bot.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace eda_goodline_bot;
 
 static public class ApiManager
 {
-    public async static void StartApiManager()
+    public async static void StartApiManager(ISocialNetworkAdapter socialNetworkAdapter)
     {
         await Task.Run(() =>
         {
@@ -38,23 +40,38 @@ static public class ApiManager
                     } while (listener.Available > 0);
 
                     string pattern = @"(\w+):([\S\s]+)";
-
-                    Regex regex = new Regex(pattern);
+                    
                     var method = Regex.Match(data.ToString(), pattern).Groups[1].ToString();
                     var additionalDataJson = Regex.Match(data.ToString(), pattern).Groups[2].ToString().Trim();
                     var additionalData = JsonSerializer.Deserialize<AdditionalDataApiModel>(additionalDataJson);
                    
                     //routing 
-                    // switch (method)
-                    // { 
-                    //     case "sendMessage":
-                    //         using (MySqlStorage db = new MySqlStorage())
-                    //         {
-                    //             
-                    //         }
-                    //         //TODO: сделать подключение к БД к списку администраторов + прокинуть сюда объект ТГ + дернуть отправку
-                    //         
-                    // }
+                    switch (method)
+                    { 
+                        case "sendMessageToAdministrators":
+                            using (MySqlStorage db = new MySqlStorage())
+                            {
+                                var administrators = db.administrators.ToList();
+                                
+                                if (additionalData?.Text != null)
+                                {
+                                    foreach (var admin in administrators)
+                                    {
+                                        var chatIdAdmin = db.users.Where(user => user.NickNameTg == admin.NickNameTg).Select(user => user.ChatIdTg).First();
+                                        if (!Equals(admin.ChatIdTg, chatIdAdmin))
+                                        {
+                                            db.administrators.Where(adm => adm.NickNameTg == admin.NickNameTg)
+                                                .ExecuteUpdate(s =>
+                                                    s.SetProperty(adm => adm.ChatIdTg, x => chatIdAdmin));
+
+                                        }
+                                        socialNetworkAdapter.SendMessage(admin.ChatIdTg, additionalData.Text);
+                                    } 
+                                }
+                            }
+
+                            break;
+                    }
 
                     listener.Shutdown(SocketShutdown.Both);
                     listener.Close();
