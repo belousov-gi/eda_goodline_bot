@@ -169,8 +169,8 @@ public class TelegramAdapter : ISocialNetworkAdapter
 
     public async void HandleUserInfoDbAsync(string nickNameTg, int userId, int chatId)
     {
-        // await Task.Run(() =>
-        // {
+        await Task.Run(() =>
+        {
             var user = GetUserFromDb(userId);
 
             if (user == null)
@@ -190,7 +190,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
                     UpdateUserInfo(userId, chatId, nickNameTg);
                 }
             }  
-        // });
+        });
 
     }
 }

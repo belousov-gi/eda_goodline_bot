@@ -1,11 +1,13 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using eda_goodline_bot.Iterfaces;
 using eda_goodline_bot.Models;
 using Microsoft.EntityFrameworkCore;
+using Telegram.Bot.Types;
 
 namespace eda_goodline_bot;
 
@@ -26,6 +28,7 @@ static public class ApiManager
 
             while (true)
             {
+                Console.WriteLine("Запустили апи");
                 var listener = tcpSocket.Accept();
                 var buffer = new byte[100];
                 var size = 0;
@@ -47,33 +50,71 @@ static public class ApiManager
                    
                     //routing 
                     switch (method)
-                    { 
+                    {
                         case "sendMessageToAdministrators":
+                        {
+                            sendMessageToAdministrators(additionalData, socialNetworkAdapter);
+                            break;
+                        }
+
+                        case "createOrdersInfoForAdmin":
+                        {
+                            string ordersInfo = "";
+                            int priceForOrder = 0;
+                            
                             using (MySqlStorage db = new MySqlStorage())
                             {
-                                var administrators = db.administrators.ToList();
+                      
+                                var todaysCustomersId =
+                                    db.ordered_dishes.Where(dish => dish.DateOfOrder == DateTime.Today)
+                                                    .Join(db.users.Select(user => new
+                                                                    {
+                                                                        userNick = user.NickNameTg,
+                                                                        userId = user.UserIdTg
+                                                                    }).Distinct(),
+                                            dish => dish.CustomerId,
+                                            user => user.userId,
+                                                    (dish, user) => new
+                                                    {
+                                                        userId = dish.CustomerId,
+                                                        userNickname = user.userNick
+                                                    }).Distinct().ToList();
+                                        
                                 
-                                if (additionalData?.Text != null)
+                                foreach (var customer in todaysCustomersId)
                                 {
-                                    foreach (var admin in administrators)
+                                    var orderedDishes = db.ordered_dishes
+                                        .Where(dish => dish.CustomerId == customer.userId)
+                                        .Join(db.dish_catalog,
+                                            dish => dish.DishId,
+                                            dishCatalog => dishCatalog.Id,
+                                            (dish, dishCatalog) => new
+                                            {
+                                                dishId = dish.DishId,
+                                                dishName = dishCatalog.GeneralDishName,
+                                                dishPrice = dishCatalog.PriceDish
+                                            }).ToList();
+                                                                                      
+
+                                    ordersInfo += "@" + customer.userNickname + "\n";
+                                    
+                                    foreach (var dish in orderedDishes)
                                     {
-                                        var chatIdAdmin = db.users.Where(user => user.NickNameTg == admin.NickNameTg).Select(user => user.ChatIdTg).First();
-                                        if (!Equals(admin.ChatIdTg, chatIdAdmin))
-                                        {
-                                            db.administrators.Where(adm => adm.NickNameTg == admin.NickNameTg)
-                                                .ExecuteUpdate(s =>
-                                                    s.SetProperty(adm => adm.ChatIdTg, x => chatIdAdmin));
-
-                                        }
-                                        socialNetworkAdapter.SendMessage(admin.ChatIdTg, additionalData.Text);
-                                    } 
+                                        ordersInfo += dish.dishName + "\n";
+                                        priceForOrder += dish.dishPrice;
+                                    }
+                                    ordersInfo += $"Итого: {priceForOrder} руб" + "\n" + "------";
                                 }
+                                AdditionalDataApiModel info = new AdditionalDataApiModel();
+                                info.Text = ordersInfo;
+                                sendMessageToAdministrators(info, socialNetworkAdapter);
                             }
-
                             break;
+                        }
                     }
 
                     listener.Shutdown(SocketShutdown.Both);
+
                     listener.Close();
                 }
                 catch (Exception e)
@@ -84,6 +125,32 @@ static public class ApiManager
             }
         });
 
-    } 
+    }
+
+    private static void sendMessageToAdministrators(AdditionalDataApiModel additionalData, ISocialNetworkAdapter socialNetworkAdapter)
+    {
+        using (MySqlStorage db = new MySqlStorage())
+        {
+            var administrators = db.administrators.ToList();
+
+            if (additionalData?.Text != null)
+            {
+                foreach (var admin in administrators)
+                {
+                    var chatIdAdmin = db.users.Where(user => user.NickNameTg == admin.NickNameTg)
+                        .Select(user => user.ChatIdTg).First();
+                                        
+                    if (!Equals(admin.ChatIdTg, chatIdAdmin))
+                    {
+                        db.administrators.Where(adm => adm.NickNameTg == admin.NickNameTg)
+                            .ExecuteUpdate(s =>
+                                s.SetProperty(adm => adm.ChatIdTg, x => chatIdAdmin));
+
+                    }
+                    socialNetworkAdapter.SendMessage(admin.ChatIdTg, additionalData.Text);
+                }
+            }
+        }
+    }
     
 }
