@@ -1,13 +1,11 @@
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using eda_goodline_bot.Iterfaces;
 using eda_goodline_bot.Models;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot.Types;
 
 namespace eda_goodline_bot;
 
@@ -51,64 +49,10 @@ static public class ApiManager
                     //routing 
                     switch (method)
                     {
-                        case "sendMessageToAdministrators":
-                        {
-                            sendMessageToAdministrators(additionalData, socialNetworkAdapter);
-                            break;
-                        }
-
                         case "createOrdersInfoForAdmin":
                         {
-                            string ordersInfo = "";
-                            int priceForOrder = 0;
-                            
-                            using (MySqlStorage db = new MySqlStorage())
-                            {
-                      
-                                var todaysCustomersId =
-                                    db.ordered_dishes.Where(dish => dish.DateOfOrder == DateTime.Today)
-                                                    .Join(db.users.Select(user => new
-                                                                    {
-                                                                        userNick = user.NickNameTg,
-                                                                        userId = user.UserIdTg
-                                                                    }).Distinct(),
-                                            dish => dish.CustomerId,
-                                            user => user.userId,
-                                                    (dish, user) => new
-                                                    {
-                                                        userId = dish.CustomerId,
-                                                        userNickname = user.userNick
-                                                    }).Distinct().ToList();
-                                        
-                                
-                                foreach (var customer in todaysCustomersId)
-                                {
-                                    var orderedDishes = db.ordered_dishes
-                                        .Where(dish => dish.CustomerId == customer.userId)
-                                        .Join(db.dish_catalog,
-                                            dish => dish.DishId,
-                                            dishCatalog => dishCatalog.Id,
-                                            (dish, dishCatalog) => new
-                                            {
-                                                dishId = dish.DishId,
-                                                dishName = dishCatalog.GeneralDishName,
-                                                dishPrice = dishCatalog.PriceDish
-                                            }).ToList();
-                                                                                      
-
-                                    ordersInfo += "@" + customer.userNickname + "\n";
-                                    
-                                    foreach (var dish in orderedDishes)
-                                    {
-                                        ordersInfo += dish.dishName + "\n";
-                                        priceForOrder += dish.dishPrice;
-                                    }
-                                    ordersInfo += $"Итого: {priceForOrder} руб" + "\n" + "------";
-                                }
-                                AdditionalDataApiModel info = new AdditionalDataApiModel();
-                                info.Text = ordersInfo;
-                                sendMessageToAdministrators(info, socialNetworkAdapter);
-                            }
+                            var orderInfo = createOrdersInfoForAdmin();
+                            sendMessageToAdministrators(orderInfo, socialNetworkAdapter);
                             break;
                         }
                     }
@@ -121,10 +65,63 @@ static public class ApiManager
                 {
                     Console.WriteLine(e);
                 }
-                
             }
         });
 
+    }
+
+    private static AdditionalDataApiModel createOrdersInfoForAdmin()
+    {
+        string ordersInfo = "";
+        int priceForOrder = 0;
+        
+        using (MySqlStorage db = new MySqlStorage())
+        {
+
+            var todaysCustomersId =
+                db.ordered_dishes.Where(dish => dish.DateOfOrder == DateTime.Today)
+                                .Join(db.users.Select(user => new
+                                                {
+                                                    userNick = user.NickNameTg,
+                                                    userId = user.UserIdTg
+                                                }).Distinct(),
+                        dish => dish.CustomerId,
+                        user => user.userId,
+                                (dish, user) => new
+                                {
+                                    userId = dish.CustomerId,
+                                    userNickname = user.userNick
+                                }).Distinct().ToList();
+                    
+            
+            foreach (var customer in todaysCustomersId)
+            {
+                var orderedDishes = db.ordered_dishes
+                    .Where(dish => dish.CustomerId == customer.userId)
+                    .Join(db.dish_catalog,
+                        dish => dish.DishId,
+                        dishCatalog => dishCatalog.Id,
+                        (dish, dishCatalog) => new
+                        {
+                            dishId = dish.DishId,
+                            dishName = dishCatalog.GeneralDishName,
+                            dishPrice = dishCatalog.PriceDish
+                        }).ToList();
+                                                                  
+
+                ordersInfo += "@" + customer.userNickname + "\n";
+                
+                foreach (var dish in orderedDishes)
+                {
+                    ordersInfo += dish.dishName + "\n";
+                    priceForOrder += dish.dishPrice;
+                }
+                ordersInfo += $"Итого: {priceForOrder} руб" + "\n" + "------";
+            }
+            AdditionalDataApiModel info = new AdditionalDataApiModel();
+            info.Text = ordersInfo;
+            return info;
+        } 
     }
 
     private static void sendMessageToAdministrators(AdditionalDataApiModel additionalData, ISocialNetworkAdapter socialNetworkAdapter)
