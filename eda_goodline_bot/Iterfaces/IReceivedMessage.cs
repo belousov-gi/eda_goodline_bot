@@ -19,11 +19,12 @@ public interface IReceivedMessage
     public class From
     {
         public int id { get; set; }
+        public string username { get; set; }
     }
     public class Chat
     {
         public int id { get; set; }
     }
 
-    private void BuildGeneralMessagesStructure(){}
+    void BuildGeneralMessagesStructure();
 }

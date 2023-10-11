@@ -16,8 +16,6 @@
 
     <ItemGroup>
       <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
-      <PackageReference Include="System.Net.Http.Json" Version="8.0.0-preview.6.23329.7" />
-      <PackageReference Include="Telegram.Bot" Version="19.0.0" />
     </ItemGroup>
 
 </Project>

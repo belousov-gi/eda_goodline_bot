@@ -2,6 +2,7 @@ using System.Net;
 using eda_goodline_bot.Iterfaces;
 using System.Text.Json;
 using eda_goodline_bot.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace eda_goodline_bot;
 
@@ -141,5 +142,55 @@ public class TelegramAdapter : ISocialNetworkAdapter
     {
         var requestStr = ServerAddress + $"/sendMessage?chat_id={chatId}&text={$"{answerText}"}";
         SendMessageToTgApi(requestStr);
+    }
+
+    public BotUser? GetUserFromDb(int userId)
+    {
+        using (MySqlStorage db = new MySqlStorage())
+        {
+            //TODO: если у записи в БД в одном из полей будет NULL, то будет эксепшен
+            // Unable to cast object of type 'System.DBNull' to type 'System.String`
+            var user = db.users.Where(user => user.UserIdTg == userId).ToList();
+            return user.Count > 0 ? user[0] : null;
+        }
+    }
+
+    public void UpdateUserInfo(int userId, int newChatId, string newNickName)
+    {
+        using (MySqlStorage db = new MySqlStorage())
+        {
+            db.users.Where(user => user.UserIdTg == userId)
+                .ExecuteUpdate(s =>
+                    s.SetProperty(user => user.ChatIdTg, user => newChatId)
+                     .SetProperty(user => user.NickNameTg, user => newNickName));
+        }
+    }
+
+
+    public async void HandleUserInfoDbAsync(string nickNameTg, int userId, int chatId)
+    {
+        await Task.Run(() =>
+        {
+            var user = GetUserFromDb(userId);
+
+            if (user == null)
+            {
+                using (MySqlStorage db = new MySqlStorage())
+                {
+                    BotUser botUser = new BotUser();
+                    botUser.LoadTelegramInfo(nickNameTg, userId, chatId);
+                    var qq = db.users.Add(botUser);
+                    db.SaveChanges();
+                }
+            }
+            else
+            {
+                if (user.ChatIdTg != chatId || user.NickNameTg != nickNameTg)
+                {
+                    UpdateUserInfo(userId, chatId, nickNameTg);
+                }
+            }  
+        });
+
     }
 }
