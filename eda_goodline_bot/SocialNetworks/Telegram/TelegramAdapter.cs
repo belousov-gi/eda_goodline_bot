@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace eda_goodline_bot;
 
-//TODO: сделать синглтоном
 public class TelegramAdapter : ISocialNetworkAdapter
 {
     private HttpClient _httpClient;
@@ -36,16 +35,11 @@ public class TelegramAdapter : ISocialNetworkAdapter
 
     public void Start()
     {
-
         //смотрим на сообщения, которые пришли до включения бота, чтобы определить с какого updateId начать
         var updateId = FindLastUpdateId(ServerAddress);
-        
-        //для отладки
-        // var updateId = 0;
-
         ReceiveNewMessages(ServerAddress, updateId);
         
-        //TODO: использвать allowed_updates (см доку) . 
+        //TODO: использвать allowed_updates (см доку)
     }
 
     private void ReceiveNewMessages(string serverAddress, int updateId)
@@ -84,7 +78,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
         using var response = telegramClient.Send(request);
         string responseText = response.Content.ReadAsStringAsync().Result;
         TelegramReceivedMessages messages = JsonSerializer.Deserialize<TelegramReceivedMessages>(responseText, OptionsDisserialization);
-        messages.BuildGeneralMessagesStructure();
+        messages?.BuildGeneralMessagesStructure();
         return messages;
     }
     
@@ -108,9 +102,6 @@ public class TelegramAdapter : ISocialNetworkAdapter
     private void SendMessageToTgApi(string requestStr)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, requestStr);
-
-        // Console.WriteLine($"Номер треда внутри хендлера ДО отправки запроса {Thread.GetCurrentProcessorId()} текст {text}");
-
         using var response = telegramClient.Send(request);
                 
         if (response.StatusCode != HttpStatusCode.OK)
@@ -130,7 +121,6 @@ public class TelegramAdapter : ISocialNetworkAdapter
             answerMenu = JsonSerializer.Serialize(action.button) + ",";
             answerMenuJSON += answerMenu;
         }
-        // string answerMenuJSON = JsonSerializer.Serialize(answerMenu);
         answerMenuJSON = answerMenuJSON.Remove(answerMenuJSON.Length - 1);
         string jsonAnswer = "{\"keyboard\":[" + answerMenuJSON+ "]}";
 
@@ -179,7 +169,7 @@ public class TelegramAdapter : ISocialNetworkAdapter
                 {
                     BotUser botUser = new BotUser();
                     botUser.LoadTelegramInfo(nickNameTg, userId, chatId);
-                    var qq = db.users.Add(botUser);
+                    db.users.Add(botUser);
                     db.SaveChanges();
                 }
             }
@@ -191,6 +181,5 @@ public class TelegramAdapter : ISocialNetworkAdapter
                 }
             }  
         });
-
     }
 }

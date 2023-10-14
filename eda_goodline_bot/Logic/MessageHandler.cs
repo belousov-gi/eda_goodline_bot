@@ -4,11 +4,10 @@ namespace eda_goodline_bot;
 
 public static class MessageHandler
 {
-    //TODO: Доделать интерфейс для сообщения, мб не через свойства, а через методы
          public static async void HandleMessage(ISocialNetworkAdapter socialNetworkAdapter, IReceivedMessage messages)
         {
 
-            //TODO: логирование ошибок навернуть + 
+            //TODO: логирование ошибок навернуть 
             await Task.Run(() =>
             {
                 foreach (var messageInfo in messages.GeneralMessagesStructure)
@@ -21,7 +20,7 @@ public static class MessageHandler
                     
                     socialNetworkAdapter.HandleUserInfoDbAsync(nickName, userId, chatId);
                     
-                    string? answerText = null;
+                    string? answerText;
                     List<Action> answerMenu;
 
                     var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId && session.SocialNetworkAdapter == socialNetworkAdapter);

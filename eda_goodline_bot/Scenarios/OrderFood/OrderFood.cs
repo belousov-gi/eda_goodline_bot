@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using eda_goodline_bot.Iterfaces;
 
 namespace eda_goodline_bot.Scenarios;
@@ -22,28 +21,17 @@ public class OrderFood : IScenario
              {
                  switch (step.StepId)
                  {
-                     case "/start":
-                     {
-                         step.StepLogic = (session) =>
-                         {
-                         };
-                         
-                         break;
-                     }
-                     
                      //находим нужный шаг
                      case "currentOrder":
                      {
                          //добавляем логику для шага
-                         step.StepLogic = (session) =>
+                         step.StepLogic = ( session) =>
                          {
                              var answer = OrderManager.ShowOrder(session.UserId);
                              var answerMenu = session.CurrentStep.Actions;
                              session.SocialNetworkAdapter.SendMessage(session.ChatId, answer, answerMenu);
                          };
-                         
                          break;
-                         
                      }
       
                      case "availableDishes":
@@ -51,8 +39,7 @@ public class OrderFood : IScenario
                          //логики для шага нет
                          
                          //добавляем логику для экшенов, которые на этом шаге есть
-                         string actionId;
-                         
+
                          foreach (var action in step.Actions)
                          {
                              //добавляем лоигку
@@ -64,13 +51,19 @@ public class OrderFood : IScenario
                                  
                                  action.ActionLogic = session =>
                                  {
-                                         actionId = action.ActionId;
                                          var dishId = int.Parse(action.ExtraData);
                                          var userId = session.UserId;
                                          string resultOfAdding;
                                          try
                                          {
-                                             resultOfAdding = OrderManager.AddDishToOrder(userId, dishId);
+                                             if (DateTime.Now.Hour < 10)
+                                             {
+                                                 resultOfAdding = OrderManager.AddDishToOrder(userId, dishId);  
+                                             }
+                                             else
+                                             {
+                                                 resultOfAdding = "Заказать блюдо можно только до 10:00";
+                                             }
                                          }
                                          catch (Exception e)
                                          {
@@ -86,15 +79,16 @@ public class OrderFood : IScenario
       
                      case "deletingPositions":
                      {
-                         int DefaultActonsAmount = step.Actions.Count;
+                         var defaultActonsAmount = step.Actions.Count;
+                         
                          //Динамически формируем экшены из того, что клиент доабвил в заказ
                          step.StepLogic = session =>
                          {
                              List<Action> dynamicActionsForStep = new List<Action>();
                              var order = OrderManager.GetOrderById(session.UserId);
-                             string answeredText = "Выберите блюда для удаления";
+                             var answeredText = "Выберeте блюдо для удаления";
                              
-                             if (order == null || order.Count == 0)
+                             if (order.Count == 0)
                              {
                                  answeredText = "Не добавлено ни одного блюда";
                              }
@@ -112,9 +106,9 @@ public class OrderFood : IScenario
                              var currentActionsAmount = currentActions.Count;
                              
                              //Если уже есть добавленные блюда, то очищаем весь список за исключением дефолтовых кнопок
-                             if (currentActionsAmount > DefaultActonsAmount)
+                             if (currentActionsAmount > defaultActonsAmount)
                              {
-                                 currentActions.RemoveRange(0, currentActionsAmount - DefaultActonsAmount);
+                                 currentActions.RemoveRange(0, currentActionsAmount - defaultActonsAmount);
                              }
                              
                              //добавляем к динамическим шагам стандартные шаги из JSON
@@ -130,10 +124,10 @@ public class OrderFood : IScenario
                                      if (actionId != "В главное меню" && actionId != "Мой заказ")
                                      {
                                          // var DishId = int.Parse(action.ExtraData);
-                                         var DishId = OrderManager.GetDishIdFromCatalog(action.ActionId);
-                                         var orderedDish =  order.Find(x => x.DishId == DishId);
+                                         var dishId = OrderManager.GetDishIdFromCatalog(action.ActionId);
+                                         var orderedDish =  order.Find(x => x.DishId == dishId);
                                          
-                                         OrderManager.RemoveDishFromOrder(orderedDish.CustomerId, DishId);
+                                         OrderManager.RemoveDishFromOrder(orderedDish.CustomerId, dishId);
                                         
                                          action.ActionAnswer = $"Удалено из заказа: {orderedDish.GeneralName}";
                                      }
@@ -150,7 +144,5 @@ public class OrderFood : IScenario
                  }
              }
          }
-
-      
 }
 

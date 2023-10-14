@@ -27,7 +27,7 @@ public static class OrderManager
                 answer += $"\n \n Итого: {generalSum} руб.";
                 return answer; 
             }
-            return "Твой заказ:\n \n Не добавлено ниодного блюда в заказ";
+            return "Твой заказ:\n \n Не добавлено ни одного блюда в заказ";
     }
 
     public static List<OrderedDishInfo> GetOrderById(int customerId)
