@@ -10,7 +10,7 @@ public interface ISocialNetworkAdapter
      void HandleUserInfoDbAsync(string nickNameTg, int userId, int chatId);
      public IScenario LoadedScenario { get; init; }
      
-     public delegate void OnMessage(ISocialNetworkAdapter socialNetworkAdapter, IReceivedMessage messages);
+     public delegate void OnMessage(ISocialNetworkAdapter socialNetworkAdapter, IReceivedMessage? messages);
      public event OnMessage OnMessages;
 
 

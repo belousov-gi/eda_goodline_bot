@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace eda_goodline_bot;
 
-static public class ApiManager
+public static class ApiManager
 {
-    public async static void StartApiManager(ISocialNetworkAdapter socialNetworkAdapter)
+    public static async void StartApiManager(ISocialNetworkAdapter socialNetworkAdapter)
     {
         await Task.Run(() =>
         {
@@ -43,6 +43,8 @@ static public class ApiManager
                     string pattern = @"(\w+):([\S\s]+)";
                     
                     var method = Regex.Match(data.ToString(), pattern).Groups[1].ToString();
+                    if (method == "") {throw new Exception("Invalid inpud data");}
+
                     var additionalDataJson = Regex.Match(data.ToString(), pattern).Groups[2].ToString().Trim();
                     var additionalData = JsonSerializer.Deserialize<AdditionalDataApiModel>(additionalDataJson);
                    
@@ -51,26 +53,29 @@ static public class ApiManager
                     {
                         case "createOrdersInfoForAdmin":
                         {
-                            var orderInfo = createOrdersInfoForAdmin();
-                            sendMessageToAdministrators(orderInfo, socialNetworkAdapter);
+                            var orderInfo = CreateOrdersInfoForAdmin();
+                            SendMessageToAdministrators(orderInfo, socialNetworkAdapter);
                             break;
                         }
                     }
-
+                    
                     listener.Shutdown(SocketShutdown.Both);
-
                     listener.Close();
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
+                    var exceptionInfo = Encoding.UTF8.GetBytes(e.Message);
+                    listener.Send(exceptionInfo);
+                    listener.Shutdown(SocketShutdown.Both);
+                    listener.Close();
                 }
             }
         });
 
     }
 
-    private static AdditionalDataApiModel createOrdersInfoForAdmin()
+    private static AdditionalDataApiModel CreateOrdersInfoForAdmin()
     {
         string ordersInfo = "";
         int priceForOrder = 0;
@@ -124,7 +129,7 @@ static public class ApiManager
         } 
     }
 
-    private static void sendMessageToAdministrators(AdditionalDataApiModel additionalData, ISocialNetworkAdapter socialNetworkAdapter)
+    private static void SendMessageToAdministrators(AdditionalDataApiModel additionalData, ISocialNetworkAdapter socialNetworkAdapter)
     {
         using (MySqlStorage db = new MySqlStorage())
         {

@@ -4,7 +4,6 @@ namespace eda_goodline_bot;
 
 static class SessionManager
 {
-    private const int _timeForExpire = 24;
     private const string _firstStepId = "/start";
     
     public static List<Session> SessionsList = new();
@@ -13,9 +12,8 @@ static class SessionManager
     {
         try
         {
-            DateTime dateTimeExpire = DateTime.Now.AddHours(_timeForExpire);
             Step currentStep = currentScenario.Steps.Find(step => step.StepId == _firstStepId) ?? throw new InvalidOperationException("/start hasn't been found");
-            Session newSession = new Session( socialNetworkAdapter, userId, chatId, currentScenario, currentStep, dateTimeExpire);
+            Session newSession = new Session( socialNetworkAdapter, userId, chatId, currentScenario, currentStep);
             SessionsList.Add(newSession);
             return newSession;
         }
@@ -24,9 +22,5 @@ static class SessionManager
             Console.WriteLine(e);
             throw new Exception("EXCEPTION");
         }
-
     }
-    
-   
-
 }

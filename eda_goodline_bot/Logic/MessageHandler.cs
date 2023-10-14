@@ -6,7 +6,6 @@ public static class MessageHandler
 {
          public static async void HandleMessage(ISocialNetworkAdapter socialNetworkAdapter, IReceivedMessage messages)
         {
-
             //TODO: логирование ошибок навернуть 
             await Task.Run(() =>
             {
@@ -24,6 +23,7 @@ public static class MessageHandler
                     List<Action> answerMenu;
 
                     var userSession =  SessionManager.SessionsList.Find(session => session.UserId == userId && session.SocialNetworkAdapter == socialNetworkAdapter);
+                    
                     
                     if (userSession == null)
                     {

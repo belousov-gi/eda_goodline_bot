@@ -24,7 +24,6 @@ public class Action
         NavigateToStep = navigateToStep;
         ActionAnswer = actionAnswer;
     }
-  
     public Action(string actionId)
     {
         ActionId = actionId;
@@ -32,31 +31,6 @@ public class Action
         this.button = new List<KeyboardButton>(1);
         this.button.Add(button);
     }
-    
-    
     public delegate void RunActionLogic(Session session);
-    
-    // public Action(string actionId, string? actionAnswer)
-    // {
-    //     ActionId = actionId;
-    //     KeyboardButton button = new KeyboardButton(actionId);
-    //     this.button = new List<KeyboardButton>(1);
-    //     this.button.Add(button);
-    //
-    //     NavigateToStep = null;
-    //     ActionAnswer = actionAnswer;
-    // }
-    
-    // public Action(string actionId)
-    // {
-    //     ActionId = actionId;
-    //     KeyboardButton button = new KeyboardButton(actionId);
-    //     this.button = new List<KeyboardButton>(1);
-    //     this.button.Add(button);
-    //
-    //     NavigateToStep = null;
-    //     ActionAnswer = null;
-    // }
-
 }
 
