@@ -2,11 +2,11 @@
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
-WORKDIR /src
-COPY ["eda_goodline_bot/eda_goodline_bot.csproj", "eda_goodline_bot/"]
-RUN dotnet restore "eda_goodline_bot/eda_goodline_bot.csproj"
-COPY . .
+#WORKDIR /src
+#COPY ["eda_goodline_bot.csproj", "eda_goodline_bot/"]
 WORKDIR "/src/eda_goodline_bot"
+COPY . .
+RUN dotnet restore "eda_goodline_bot.csproj"
 RUN dotnet build "eda_goodline_bot.csproj" -c Release -o /app/build
 
 FROM build AS publish

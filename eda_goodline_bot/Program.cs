@@ -3,12 +3,11 @@ using eda_goodline_bot.Scenarios;
 
 namespace eda_goodline_bot
 {
-    
     public class Program
     {
         public static void Main()
         {
-            ApplicationConfig.LoadConfigFile(@"C:\Users\frega\RiderProjects\eda_goodline_bot\eda_goodline_bot\appsettings.json");
+            ApplicationConfig.LoadConfigFile(@"appsettings.json");
             
             string filePath = "scenario.json";
             string token =  ApplicationConfig.TokenBotTg ?? throw new Exception("Empty TG token");
