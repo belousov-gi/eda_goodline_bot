@@ -11,11 +11,11 @@ namespace eda_goodline_bot;
 
 public static class ApiManager
 {
-    public static async void StartApiManager(ISocialNetworkAdapter socialNetworkAdapter)
+    public static async void StartApiManager(ISocialNetworkAdapter socialNetworkAdapter, string? host)
     {
         await Task.Run(() =>
         {
-            const string ip = "127.0.0.1";
+            string ip = host ?? "0.0.0.0";
             const int port = 9999;
             var tcpEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
 
@@ -72,9 +72,7 @@ public static class ApiManager
                 }
             }
         });
-
     }
-
     private static AdditionalDataApiModel CreateOrdersInfoForAdmin()
     {
         string ordersInfo = "";
