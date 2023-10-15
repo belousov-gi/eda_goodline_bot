@@ -6,40 +6,19 @@ public class Session
 {
     private bool _isExpire;
     private DateTime _dateTimeExpire;
-    public string UserId { get; private init; }
-    public int ChatId { get; init; }
-    public ISocialNetworkAdapter SocialNetworkAdapter { get; init; }
-    public IScenario CurrentScenario { get; set; }
-
+    public int UserId { get; private init; }
+    public int ChatId { get;}
+    public ISocialNetworkAdapter SocialNetworkAdapter { get;}
+    public IScenario CurrentScenario { get;}
     public Step CurrentStep { get; set; }
 
-    public DateTime DateTimeExpire { get; set; }
-    public bool IsExpire
-    {
-        get
-        {
-            DateTime currentDate = DateTime.Now;
-            
-            if (currentDate > DateTimeExpire)
-            {
-                return true;
-            }
-            
-            DateTimeExpire = currentDate;
-            return false;
-        }
-    }
-
-
-
-    public Session(ISocialNetworkAdapter socialNetworkAdapter, string userId, int chatId, IScenario currentScenario, Step? currentStep, DateTime dateTimeExpire)
+    public Session(ISocialNetworkAdapter socialNetworkAdapter, int userId, int chatId, IScenario currentScenario, Step? currentStep)
     {
         SocialNetworkAdapter = socialNetworkAdapter;
         UserId = userId;
         ChatId = chatId;
         CurrentScenario = currentScenario;
         CurrentStep = currentStep;
-        DateTimeExpire = dateTimeExpire;
     }
 
 }

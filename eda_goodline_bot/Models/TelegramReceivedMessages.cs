@@ -5,7 +5,6 @@ namespace eda_goodline_bot.Models;
 
 public class TelegramReceivedMessages : IReceivedMessage
 {
-    // public IReceivedMessage.Result[] results { get; set; }
 
     public IReceivedMessage.Result[] GeneralMessagesStructure { get; set; }
 
@@ -61,6 +60,7 @@ public class TelegramReceivedMessages : IReceivedMessage
             GeneralMessagesStructure[i].message.from = new IReceivedMessage.From();
             GeneralMessagesStructure[i].message.chat = new IReceivedMessage.Chat();
             GeneralMessagesStructure[i].message.from.id = res.message.from.id;
+            GeneralMessagesStructure[i].message.from.username = res.message.from.username;
             GeneralMessagesStructure[i].message.chat.id = res.message.chat.id;
             GeneralMessagesStructure[i].message.date = res.message.date;
             GeneralMessagesStructure[i].message.text = res.message.text;

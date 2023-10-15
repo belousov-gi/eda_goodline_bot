@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace eda_goodline_bot;
 
 public class KeyboardButton
