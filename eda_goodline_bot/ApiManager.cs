@@ -17,12 +17,13 @@ public static class ApiManager
         {
             string ip = host ?? "0.0.0.0";
             const int port = 9999;
+            int capacityQueue = 2; 
             var tcpEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
 
             var tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             tcpSocket.Bind(tcpEndPoint);
-            tcpSocket.Listen(2);
+            tcpSocket.Listen(capacityQueue);
 
             while (true)
             {

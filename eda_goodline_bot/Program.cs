@@ -13,14 +13,14 @@ namespace eda_goodline_bot
 
             for (int i = 0; i < amountArgs; i+=2)
             {
-                if (args[i].StartsWith('-') && Enum.IsDefined(typeof(AvailableInputArgs), args[i].Remove(0, 1)))
+                var inputArg = args[i].Remove(0, 1);
+                if (args[i].StartsWith('-') && Enum.IsDefined(typeof(AvailableInputArgs), inputArg))
                 {
-                    var arg = args[i].Remove(0, 1);
-                    inputArgs.Add(arg, args[i+1]);
+                    inputArgs.Add(inputArg, args[i+1]);
                 }
                 else
                 {
-                    throw new Exception("Invaild input command");
+                    throw new Exception("Invalid input command");
                 }
             }
             
