@@ -1,0 +1,40 @@
+﻿version: '3.3'
+services:
+  eda_goodline_bot:
+    container_name: bot_core
+    image: eda_goodline_bot:1.0
+    environment:
+      - "IP_API_CONTAINER=10.5.0.5"
+    build:
+      context: ./eda_goodline_bot
+      dockerfile: Dockerfile
+     
+    ports:
+      - "443:443"
+
+    networks:
+      customnet:
+        ipv4_address: 10.5.0.5
+    
+  ScheduledSendler:
+    container_name: scheduled_sendler
+    image: scheduled_sendler:1.0
+    
+    environment:
+      - "IP_API_CONTAINER=10.5.0.5"
+      
+    build:
+      context: ./ScheduledSendler
+      dockerfile: Dockerfile
+      
+    networks:
+      customnet:
+        ipv4_address: 10.5.0.6
+      
+networks:
+  customnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
