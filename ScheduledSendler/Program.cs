@@ -8,7 +8,8 @@ public class Program
     {
         try
         {
-            const string ip = "127.0.0.1";
+            string? host = Environment.GetEnvironmentVariable("IP_API_CONTAINER");
+            string ip = host ?? "0.0.0.0";
             const int port = 9999;
             var tcpEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
             var tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );

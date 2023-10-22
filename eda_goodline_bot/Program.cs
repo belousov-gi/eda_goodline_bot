@@ -15,8 +15,10 @@ namespace eda_goodline_bot
             var scenario = ScenarioBuilder.CreateScenarioFromJson<OrderFood>(filePath);
             
             ISocialNetworkAdapter socialNetworkAdapter = new TelegramAdapter(token, scenario);
-            ApiManager.StartApiManager(socialNetworkAdapter);
-            
+
+            string? host = Environment.GetEnvironmentVariable("IP_API_CONTAINER");
+            ApiManager.StartApiManager(socialNetworkAdapter, host);
+
             socialNetworkAdapter.OnMessages += MessageHandler.HandleMessage;
             socialNetworkAdapter.Start();
 

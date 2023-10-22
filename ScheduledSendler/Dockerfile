@@ -2,11 +2,11 @@
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
-WORKDIR /src
-COPY ["ScheduledSendler/ScheduledSendler.csproj", "ScheduledSendler/"]
-RUN dotnet restore "ScheduledSendler/ScheduledSendler.csproj"
-COPY . .
+#WORKDIR /src
+#COPY ["ScheduledSendler.csproj", "ScheduledSendler/"]
 WORKDIR "/src/ScheduledSendler"
+COPY . .
+RUN dotnet restore "ScheduledSendler.csproj"
 RUN dotnet build "ScheduledSendler.csproj" -c Release -o /app/build
 
 FROM build AS publish
@@ -14,5 +14,8 @@ RUN dotnet publish "ScheduledSendler.csproj" -c Release -o /app/publish /p:UseAp
 
 FROM base AS final
 WORKDIR /app
+RUN apt-get update && apt-get -y install cron
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "ScheduledSendler.dll"]
+COPY crontask /etc/cron.d
+RUN chmod 0644 /etc/cron.d/crontask
+CMD ["cron", "-f"]
