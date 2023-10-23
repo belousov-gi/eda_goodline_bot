@@ -15,7 +15,9 @@ RUN dotnet publish "ScheduledSendler.csproj" -c Release -o /app/publish /p:UseAp
 FROM base AS final
 WORKDIR /app
 RUN apt-get update && apt-get -y install cron
+RUN apt-get install -y systemd
 COPY --from=publish /app/publish .
 COPY crontask /etc/cron.d
 RUN chmod 0644 /etc/cron.d/crontask
+#RUN timedatectl set-timezone Europe/Moscow
 CMD ["cron", "-f"]

@@ -18,7 +18,7 @@ public class Program
             var date = Encoding.UTF8.GetBytes(message);
         
             tcpSocket.Connect(tcpEndPoint);
-            tcpSocket.Send(date); 
+            tcpSocket.Send(date);
         }
         catch (Exception e)
         {
