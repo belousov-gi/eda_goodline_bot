@@ -66,17 +66,13 @@ public static class ApiManager
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
-                    var exceptionInfo = Encoding.UTF8.GetBytes(e.Message);
-                    listener.Send(exceptionInfo);
-                    listener.Shutdown(SocketShutdown.Both);
-                    listener.Close();
                 }
             }
         });
     }
     private static AdditionalDataApiModel CreateOrdersInfoForAdmin()
     {
-        string ordersInfo = "";
+        string ordersInfo = null;
         int priceForOrder = 0;
         
         using (MySqlStorage db = new MySqlStorage())
@@ -123,7 +119,7 @@ public static class ApiManager
                 ordersInfo += $"Итого: {priceForOrder} руб" + "\n" + "------";
             }
             AdditionalDataApiModel info = new AdditionalDataApiModel();
-            info.Text = ordersInfo;
+            info.Text = ordersInfo ?? "Заказов нет";
             return info;
         } 
     }
